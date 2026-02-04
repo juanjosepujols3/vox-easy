@@ -1,26 +1,40 @@
 "use client";
 
-import { useState } from "react";
-import { Check, X, Zap, Star, Shield } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Check, X, Zap, Star, Shield, ExternalLink } from "lucide-react";
+import { getSettings, saveSettings, getDailyUsage, isLicenseValid } from "../lib/storage";
 
 export default function License() {
   const [key, setKey] = useState("");
   const [status, setStatus] = useState<"idle" | "valid" | "invalid">("idle");
+  const [isPro, setIsPro] = useState(false);
+  const [usage, setUsage] = useState({ minutes: 0, date: "" });
+
+  useEffect(() => {
+    const settings = getSettings();
+    setKey(settings.licenseKey);
+    setIsPro(isLicenseValid());
+    setUsage(getDailyUsage());
+  }, []);
 
   const features = [
-    { name: "Modelo Tiny", free: true },
-    { name: "Modelo Small", free: true },
+    { name: "Transcripción por voz", free: true },
+    { name: "Groq API (gratis)", free: true },
     { name: "5 minutos por día", free: true },
-    { name: "Modelo Medium", free: false },
-    { name: "Modelo Large", free: false },
+    { name: "OpenAI Whisper API", free: false },
     { name: "Minutos ilimitados", free: false },
-    { name: "Historial de transcripciones", free: false },
+    { name: "Historial completo", free: false },
     { name: "Soporte prioritario", free: false },
+    { name: "Actualizaciones de por vida", free: false },
   ];
 
   const apply = () => {
-    if (key.toUpperCase().startsWith("DICTADO-PRO")) {
+    const trimmedKey = key.trim();
+    if (trimmedKey.toUpperCase().startsWith("DICTADO-PRO") ||
+        trimmedKey.toUpperCase().startsWith("VOX-")) {
+      saveSettings({ licenseKey: trimmedKey });
       setStatus("valid");
+      setIsPro(true);
     } else {
       setStatus("invalid");
       setTimeout(() => setStatus("idle"), 3000);
@@ -47,6 +61,8 @@ export default function License() {
     </div>
   );
 
+  const usagePercent = Math.min((usage.minutes / 5) * 100, 100);
+
   return (
     <div className="p-8">
       <div className="mb-7">
@@ -58,34 +74,38 @@ export default function License() {
 
       <div className="max-w-2xl space-y-5">
         {/* Current Plan */}
-        <div className="card bg-base-200">
+        <div className={`card ${isPro ? "bg-primary/10 border-2 border-primary" : "bg-base-200"}`}>
           <div className="card-body p-5">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-base-300 rounded-lg flex items-center justify-center">
-                  <Shield size={20} className="opacity-50" />
+                <div className={`w-10 h-10 ${isPro ? "bg-primary" : "bg-base-300"} rounded-lg flex items-center justify-center`}>
+                  <Shield size={20} className={isPro ? "text-primary-content" : "opacity-50"} />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
                     <h3 className="text-sm font-semibold">Plan actual</h3>
-                    <span className="badge badge-outline badge-sm">FREE</span>
+                    <span className={`badge ${isPro ? "badge-primary" : "badge-outline"} badge-sm`}>
+                      {isPro ? "PRO" : "FREE"}
+                    </span>
                   </div>
                   <p className="text-xs text-base-content/50 mt-0.5">
-                    Versión gratuita con límites básicos
+                    {isPro ? "Acceso completo sin límites" : "Versión gratuita con límites básicos"}
                   </p>
                 </div>
               </div>
-              <div className="text-right">
-                <p className="text-xs text-base-content/50 mb-1">Uso hoy</p>
-                <p className="text-sm font-semibold">
-                  3.2 <span className="opacity-50 font-normal">/ 5 min</span>
-                </p>
-                <progress
-                  className="progress progress-primary w-24 h-1.5 mt-1.5"
-                  value="64"
-                  max="100"
-                />
-              </div>
+              {!isPro && (
+                <div className="text-right">
+                  <p className="text-xs text-base-content/50 mb-1">Uso hoy</p>
+                  <p className="text-sm font-semibold">
+                    {usage.minutes.toFixed(1)} <span className="opacity-50 font-normal">/ 5 min</span>
+                  </p>
+                  <progress
+                    className={`progress ${usagePercent >= 80 ? "progress-warning" : "progress-primary"} w-24 h-1.5 mt-1.5`}
+                    value={usagePercent}
+                    max="100"
+                  />
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -103,7 +123,7 @@ export default function License() {
                 value={key}
                 onChange={(e) => setKey(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && apply()}
-                placeholder="DICTADO-PRO-XXXX-XXXX-XXXX"
+                placeholder="VOX-XXXX-XXXX-XXXX"
                 className={`input input-bordered flex-1 font-mono ${
                   status === "invalid" ? "input-error" : ""
                 }`}
@@ -134,10 +154,13 @@ export default function License() {
         {/* Free vs Pro Cards */}
         <div className="grid grid-cols-2 gap-4">
           {/* Free */}
-          <div className="card bg-base-200">
+          <div className={`card bg-base-200 ${!isPro ? "border-2 border-base-content/20" : ""}`}>
             <div className="card-body p-5">
-              <h3 className="text-sm font-semibold mb-0.5">Free</h3>
-              <p className="text-xs text-base-content/50 mb-4">Plan actual</p>
+              <div className="flex items-center justify-between mb-0.5">
+                <h3 className="text-sm font-semibold">Free</h3>
+                {!isPro && <span className="badge badge-outline badge-sm">Actual</span>}
+              </div>
+              <p className="text-xs text-base-content/50 mb-4">Para probar</p>
               <p className="text-2xl font-bold mb-5">
                 $0
                 <span className="text-sm font-normal opacity-50 ml-1">
@@ -149,13 +172,14 @@ export default function License() {
           </div>
 
           {/* Pro */}
-          <div className="card bg-base-200 border-2 border-primary relative overflow-hidden">
+          <div className={`card bg-base-200 ${isPro ? "border-2 border-primary" : "border-2 border-primary/40"} relative overflow-hidden`}>
             <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent" />
             <div className="card-body p-5 relative">
               <div className="flex items-center justify-between mb-0.5">
                 <h3 className="text-sm font-semibold">Pro</h3>
                 <span className="badge badge-primary badge-sm gap-1">
-                  <Star size={10} fill="currentColor" /> Popular
+                  <Star size={10} fill="currentColor" />
+                  {isPro ? "Activo" : "Popular"}
                 </span>
               </div>
               <p className="text-xs text-base-content/50 mb-4">
@@ -173,12 +197,32 @@ export default function License() {
         </div>
 
         {/* CTA */}
-        <button className="btn btn-primary btn-block">
-          <Zap size={16} /> Upgrade a Pro — $19 una vez
-        </button>
-        <p className="text-center text-xs text-base-content/50">
-          Pago único, sin suscripción. Incluye todas las versiones futuras de v1.
-        </p>
+        {!isPro && (
+          <>
+            <a
+              href="https://voxeasy.lemonsqueezy.com/checkout/buy/xxxxx"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn btn-primary btn-block"
+            >
+              <Zap size={16} /> Upgrade a Pro — $19 una vez
+              <ExternalLink size={14} />
+            </a>
+            <p className="text-center text-xs text-base-content/50">
+              Pago único, sin suscripción. Incluye todas las versiones futuras.
+            </p>
+          </>
+        )}
+
+        {isPro && (
+          <div className="alert alert-success">
+            <Check size={16} />
+            <div>
+              <p className="font-semibold">¡Gracias por ser Pro!</p>
+              <p className="text-xs opacity-80">Tienes acceso completo a todas las funciones.</p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

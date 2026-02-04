@@ -11,6 +11,7 @@ import {
   Square,
   Keyboard,
   Settings,
+  AlertCircle,
 } from "lucide-react";
 import {
   useRecording,
@@ -19,6 +20,17 @@ import {
   useNotification,
   isTauri,
 } from "../lib/tauri";
+import { transcribe } from "../lib/whisper";
+import {
+  getSettings,
+  getHistory,
+  addToHistory,
+  getDailyUsage,
+  addUsageMinutes,
+  canTranscribe,
+  isLicenseValid,
+  TranscriptionHistory,
+} from "../lib/storage";
 
 export default function Dashboard() {
   const { isRecording, startRecording, stopRecording } = useRecording();
@@ -26,28 +38,94 @@ export default function Dashboard() {
   const { notify } = useNotification();
   const [transcribedText, setTranscribedText] = useState<string | null>(null);
   const [isTranscribing, setIsTranscribing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [history, setHistory] = useState<TranscriptionHistory[]>([]);
+  const [usage, setUsage] = useState({ minutes: 0, date: "" });
+  const [isPro, setIsPro] = useState(false);
 
   const hour = new Date().getHours();
   const greeting =
     hour < 12 ? "Buenos días" : hour < 18 ? "Buenas tardes" : "Buenas noches";
 
+  // Load data on mount
+  useEffect(() => {
+    setHistory(getHistory().slice(0, 5));
+    setUsage(getDailyUsage());
+    setIsPro(isLicenseValid());
+  }, []);
+
   // Toggle recording
   const toggleRecording = useCallback(async () => {
+    setError(null);
+
     if (isRecording) {
+      // Stop and transcribe
       const audioData = await stopRecording();
-      if (audioData) {
-        setIsTranscribing(true);
-        // TODO: Send to API for transcription
-        // For now, simulate transcription
-        setTimeout(() => {
-          const mockText = "Texto transcrito de ejemplo";
-          setTranscribedText(mockText);
-          writeText(mockText);
-          notify("Dictado", "Texto copiado al portapapeles");
-          setIsTranscribing(false);
-        }, 1000);
+      if (!audioData) {
+        setError("No se pudo obtener el audio");
+        return;
+      }
+
+      // Check if can transcribe
+      const check = canTranscribe();
+      if (!check.allowed) {
+        setError(check.reason || "No se puede transcribir");
+        notify("Dictado", check.reason || "Límite alcanzado");
+        return;
+      }
+
+      setIsTranscribing(true);
+
+      try {
+        const settings = getSettings();
+
+        if (!settings.apiKey) {
+          throw new Error("Configura tu API key en Settings");
+        }
+
+        const result = await transcribe(
+          audioData,
+          {
+            provider: settings.apiProvider,
+            apiKey: settings.apiKey,
+          },
+          {
+            language: settings.language,
+          }
+        );
+
+        setTranscribedText(result.text);
+        await writeText(result.text);
+        notify("Dictado", "Texto copiado al portapapeles");
+
+        // Add to history
+        const entry = addToHistory({
+          text: result.text,
+          duration: result.duration,
+          app: "Dictado",
+        });
+        setHistory((prev) => [entry, ...prev].slice(0, 5));
+
+        // Update usage
+        if (result.duration) {
+          addUsageMinutes(result.duration / 60);
+          setUsage(getDailyUsage());
+        }
+      } catch (err) {
+        const message = err instanceof Error ? err.message : "Error al transcribir";
+        setError(message);
+        notify("Error", message);
+      } finally {
+        setIsTranscribing(false);
       }
     } else {
+      // Start recording
+      const check = canTranscribe();
+      if (!check.allowed) {
+        setError(check.reason || "No se puede transcribir");
+        return;
+      }
+
       await startRecording();
       notify("Dictado", "Grabación iniciada");
     }
@@ -57,24 +135,57 @@ export default function Dashboard() {
   useGlobalShortcut("CommandOrControl+Shift+M", toggleRecording);
 
   const stats = [
-    { label: "Minutos hoy", value: "3.2", unit: "min", icon: Clock, change: "+12%" },
-    { label: "Transcripciones", value: "47", unit: "total", icon: Mic, change: "+8 hoy" },
-    { label: "Precisión", value: "94.7", unit: "%", icon: TrendingUp, change: "+2.1%" },
-  ];
-
-  const recent = [
-    { text: 'const handleClick = () => {', time: "hace 2 min", app: "VS Code" },
-    { text: 'import React from "react"', time: "hace 15 min", app: "Cursor" },
-    { text: "async function getUserData()", time: "hace 1 hora", app: "Terminal" },
-    { text: "SELECT * FROM users WHERE id", time: "hace 2 horas", app: "VS Code" },
-    { text: 'git commit -m "initial"', time: "hace 3 horas", app: "Terminal" },
+    {
+      label: "Minutos hoy",
+      value: usage.minutes.toFixed(1),
+      unit: isPro ? "min" : `/ 5 min`,
+      icon: Clock,
+      change: isPro ? "Ilimitado" : `${Math.round((usage.minutes / 5) * 100)}%`,
+    },
+    {
+      label: "Transcripciones",
+      value: String(history.length + getHistory().length),
+      unit: "total",
+      icon: Mic,
+      change: `+${history.length} hoy`,
+    },
+    {
+      label: "Precisión",
+      value: "94.7",
+      unit: "%",
+      icon: TrendingUp,
+      change: "+2.1%",
+    },
   ];
 
   const tips = [
-    { icon: Keyboard, title: "Atajo rápido", desc: "Presiona ⌘+Shift+M para dictar desde cualquier app" },
-    { icon: Mic, title: "Mejor audio", desc: "Habla claro y mantén el micrófono cerca" },
-    { icon: Settings, title: "Configura", desc: "Ajusta modelo, idioma y más en Settings" },
+    {
+      icon: Keyboard,
+      title: "Atajo rápido",
+      desc: "Presiona ⌘+Shift+M para dictar desde cualquier app",
+    },
+    {
+      icon: Mic,
+      title: "Mejor audio",
+      desc: "Habla claro y mantén el micrófono cerca",
+    },
+    {
+      icon: Settings,
+      title: "Configura",
+      desc: "Añade tu API key en Settings para transcribir",
+    },
   ];
+
+  const formatTime = (timestamp: number) => {
+    const diff = Date.now() - timestamp;
+    const minutes = Math.floor(diff / 60000);
+    const hours = Math.floor(diff / 3600000);
+
+    if (minutes < 1) return "ahora";
+    if (minutes < 60) return `hace ${minutes} min`;
+    if (hours < 24) return `hace ${hours} hora${hours > 1 ? "s" : ""}`;
+    return new Date(timestamp).toLocaleDateString();
+  };
 
   return (
     <div className="p-8">
@@ -87,17 +198,25 @@ export default function Dashboard() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          {isTauri() && (
-            <div className="badge badge-success gap-2">
-              App Desktop
-            </div>
-          )}
+          {isPro && <div className="badge badge-primary gap-1">PRO</div>}
+          {isTauri() && <div className="badge badge-success gap-2">Desktop</div>}
           <div className="badge badge-outline gap-2">
             <div className="w-2 h-2 bg-success rounded-full animate-pulse" />
             Sistema activo
           </div>
         </div>
       </div>
+
+      {/* Error Alert */}
+      {error && (
+        <div className="alert alert-error mb-6">
+          <AlertCircle size={16} />
+          <span>{error}</span>
+          <button className="btn btn-sm btn-ghost" onClick={() => setError(null)}>
+            ✕
+          </button>
+        </div>
+      )}
 
       {/* Stats */}
       <div className="grid grid-cols-3 gap-4 mb-6">
@@ -163,17 +282,17 @@ export default function Dashboard() {
                     <div
                       key={i}
                       className="w-1 bg-primary rounded-full animate-pulse"
-                      style={{ height: `${h * 3}px`, animationDelay: `${i * 0.08}s` }}
+                      style={{
+                        height: `${h * 3}px`,
+                        animationDelay: `${i * 0.08}s`,
+                      }}
                     />
                   ))}
                 </div>
                 <p className="text-xs text-base-content/50 text-center mb-4">
                   Grabando… habla ahora
                 </p>
-                <button
-                  onClick={toggleRecording}
-                  className="btn btn-error w-full"
-                >
+                <button onClick={toggleRecording} className="btn btn-error w-full">
                   <Square size={14} fill="currentColor" /> Detener
                 </button>
               </>
@@ -181,8 +300,10 @@ export default function Dashboard() {
 
             {transcribedText && !isRecording && !isTranscribing && (
               <div className="mt-4 p-3 bg-base-300 rounded-lg">
-                <p className="text-xs text-base-content/50 mb-1">Última transcripción:</p>
-                <p className="text-sm font-mono">{transcribedText}</p>
+                <p className="text-xs text-base-content/50 mb-1">
+                  Última transcripción:
+                </p>
+                <p className="text-sm font-mono line-clamp-3">{transcribedText}</p>
               </div>
             )}
 
@@ -207,23 +328,33 @@ export default function Dashboard() {
               </button>
             </div>
             <div className="space-y-1">
-              {recent.map((item, i) => (
-                <div
-                  key={i}
-                  className="flex items-center gap-3 px-2.5 py-2 rounded-lg hover:bg-base-300 transition-colors cursor-pointer"
-                >
-                  <div className="w-7 h-7 bg-base-300 rounded-md flex items-center justify-center flex-shrink-0">
-                    <Activity size={13} className="text-primary" />
+              {history.length === 0 ? (
+                <p className="text-sm text-base-content/50 text-center py-8">
+                  No hay transcripciones aún. ¡Empieza a dictar!
+                </p>
+              ) : (
+                history.map((item) => (
+                  <div
+                    key={item.id}
+                    className="flex items-center gap-3 px-2.5 py-2 rounded-lg hover:bg-base-300 transition-colors cursor-pointer"
+                    onClick={() => {
+                      writeText(item.text);
+                      notify("Copiado", "Texto copiado al portapapeles");
+                    }}
+                  >
+                    <div className="w-7 h-7 bg-base-300 rounded-md flex items-center justify-center flex-shrink-0">
+                      <Activity size={13} className="text-primary" />
+                    </div>
+                    <p className="text-sm font-mono flex-1 truncate">{item.text}</p>
+                    <span className="text-xs opacity-50 whitespace-nowrap">
+                      {item.app || "Dictado"}
+                    </span>
+                    <span className="text-xs opacity-50 whitespace-nowrap w-20 text-right">
+                      {formatTime(item.timestamp)}
+                    </span>
                   </div>
-                  <p className="text-sm font-mono flex-1 truncate">{item.text}</p>
-                  <span className="text-xs opacity-50 whitespace-nowrap">
-                    {item.app}
-                  </span>
-                  <span className="text-xs opacity-50 whitespace-nowrap w-20 text-right">
-                    {item.time}
-                  </span>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </div>
         </div>
