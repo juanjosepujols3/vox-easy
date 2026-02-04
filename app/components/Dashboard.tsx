@@ -42,6 +42,7 @@ export default function Dashboard() {
   const [history, setHistory] = useState<TranscriptionHistory[]>([]);
   const [usage, setUsage] = useState({ minutes: 0, date: "" });
   const [isPro, setIsPro] = useState(false);
+  const [recordingTime, setRecordingTime] = useState(0);
 
   const hour = new Date().getHours();
   const greeting =
@@ -53,6 +54,27 @@ export default function Dashboard() {
     setUsage(getDailyUsage());
     setIsPro(isLicenseValid());
   }, []);
+
+  // Recording timer
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (isRecording) {
+      setRecordingTime(0);
+      interval = setInterval(() => {
+        setRecordingTime((prev) => prev + 1);
+      }, 1000);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+      setRecordingTime(0);
+    };
+  }, [isRecording]);
+
+  const formatRecordingTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
+  };
 
   // Toggle recording
   const toggleRecording = useCallback(async () => {
@@ -218,6 +240,36 @@ export default function Dashboard() {
         </div>
       )}
 
+      {/* Usage Progress */}
+      {!isPro && (
+        <div className="card bg-gradient-to-r from-primary/10 to-secondary/10 shadow-sm mb-6">
+          <div className="card-body p-5">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <Clock size={16} className="text-primary" />
+                <span className="font-medium text-sm">Uso diario</span>
+              </div>
+              <span className="text-xs text-base-content/70">
+                {usage.minutes.toFixed(1)} / 5 minutos
+              </span>
+            </div>
+            <progress
+              className="progress progress-primary w-full"
+              value={usage.minutes}
+              max={5}
+            ></progress>
+            <div className="flex items-center justify-between mt-2">
+              <span className="text-xs text-base-content/50">
+                {Math.max(0, 5 - usage.minutes).toFixed(1)} min restantes hoy
+              </span>
+              <button className="btn btn-xs btn-primary">
+                Obtener Pro - Ilimitado
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Stats */}
       <div className="grid grid-cols-3 gap-4 mb-6">
         {stats.map((s, i) => {
@@ -277,23 +329,24 @@ export default function Dashboard() {
               </>
             ) : (
               <>
-                <div className="flex items-center justify-center gap-1 mb-3 py-2">
-                  {[3, 5, 2, 7, 4, 6, 3, 8, 5, 4, 7, 3, 5, 2, 6, 4].map((h, i) => (
-                    <div
-                      key={i}
-                      className="w-1 bg-primary rounded-full animate-pulse"
-                      style={{
-                        height: `${h * 3}px`,
-                        animationDelay: `${i * 0.08}s`,
-                      }}
-                    />
-                  ))}
+                <div className="flex flex-col items-center justify-center py-2">
+                  <div className="relative mb-3">
+                    <div className="w-16 h-16 rounded-full bg-error/20 flex items-center justify-center animate-pulse">
+                      <div className="w-12 h-12 rounded-full bg-error/40 flex items-center justify-center">
+                        <Mic size={24} className="text-error" />
+                      </div>
+                    </div>
+                    <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-error animate-ping" />
+                  </div>
+                  <span className="text-2xl font-mono font-bold tabular-nums">
+                    {formatRecordingTime(recordingTime)}
+                  </span>
                 </div>
                 <p className="text-xs text-base-content/50 text-center mb-4">
                   Grabando… habla ahora
                 </p>
                 <button onClick={toggleRecording} className="btn btn-error w-full">
-                  <Square size={14} fill="currentColor" /> Detener
+                  <Square size={14} fill="currentColor" /> Detener grabación
                 </button>
               </>
             )}
