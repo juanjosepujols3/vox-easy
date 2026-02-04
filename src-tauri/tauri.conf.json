@@ -10,8 +10,10 @@
     "beforeBuildCommand": "npm run build"
   },
   "app": {
+    "macOSPrivateApi": true,
     "windows": [
       {
+        "label": "main",
         "title": "Dictado",
         "width": 1000,
         "height": 700,
@@ -22,6 +24,21 @@
         "center": true,
         "decorations": true,
         "transparent": false
+      },
+      {
+        "label": "recording",
+        "title": "",
+        "url": "/recording",
+        "width": 160,
+        "height": 50,
+        "resizable": false,
+        "fullscreen": false,
+        "decorations": false,
+        "transparent": true,
+        "alwaysOnTop": true,
+        "visible": false,
+        "skipTaskbar": true,
+        "shadow": false
       }
     ],
     "trayIcon": {
@@ -46,7 +63,7 @@
     "shortDescription": "Transcribe tu voz a texto",
     "longDescription": "Dictado es una aplicación de transcripción de voz a texto que funciona con un atajo de teclado global.",
     "macOS": {
-      "entitlements": null,
+      "entitlements": "entitlements.plist",
       "minimumSystemVersion": "10.15"
     }
   },

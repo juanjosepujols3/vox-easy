@@ -82,9 +82,18 @@ export default function Dashboard() {
 
     if (isRecording) {
       // Stop and transcribe
+      console.log("Deteniendo grabación...");
       const audioData = await stopRecording();
+      console.log("Audio recibido:", audioData ? `${audioData.length} bytes` : "null");
+
       if (!audioData) {
         setError("No se pudo obtener el audio");
+        return;
+      }
+
+      if (audioData.length < 1000) {
+        setError("Audio muy corto. Habla más tiempo.");
+        console.log("Audio demasiado corto:", audioData.length, "bytes");
         return;
       }
 
@@ -100,10 +109,15 @@ export default function Dashboard() {
 
       try {
         const settings = getSettings();
+        console.log("Settings:", { provider: settings.apiProvider, hasKey: !!settings.apiKey, language: settings.language });
 
-        if (!settings.apiKey) {
+        // Only require API key for direct providers (openai, groq), not for backend
+        if (settings.apiProvider !== "backend" && !settings.apiKey) {
           throw new Error("Configura tu API key en Settings");
         }
+
+        console.log("Starting transcription with", settings.apiProvider);
+        console.log("Audio data size:", audioData.length, "bytes");
 
         const result = await transcribe(
           audioData,
@@ -116,9 +130,20 @@ export default function Dashboard() {
           }
         );
 
+        console.log("Transcription result:", result);
+
         setTranscribedText(result.text);
         await writeText(result.text);
-        notify("Dictado", "Texto copiado al portapapeles");
+
+        // Auto-paste the text where the user is typing
+        if (isTauri()) {
+          try {
+            const { invoke } = await import("@tauri-apps/api/core");
+            await invoke("paste_text");
+          } catch (err) {
+            console.error("Failed to auto-paste:", err);
+          }
+        }
 
         // Add to history
         const entry = addToHistory({

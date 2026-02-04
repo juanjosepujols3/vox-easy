@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 
 // Check if we're running in Tauri
 export const isTauri = (): boolean => {
@@ -23,7 +23,9 @@ export function useRecording() {
     try {
       const { invoke } = await import("@tauri-apps/api/core");
       await invoke("start_recording");
+      await invoke("show_recording_popup");
       setIsRecording(true);
+      console.log("Recording started");
     } catch (error) {
       console.error("Failed to start recording:", error);
     }
@@ -38,7 +40,9 @@ export function useRecording() {
 
     try {
       const { invoke } = await import("@tauri-apps/api/core");
+      await invoke("hide_recording_popup");
       const data = await invoke<number[]>("stop_recording");
+      console.log("Recording stopped, audio data length:", data.length);
       const audioBytes = new Uint8Array(data);
       setAudioData(audioBytes);
       setIsRecording(false);
@@ -53,31 +57,40 @@ export function useRecording() {
   return { isRecording, audioData, startRecording, stopRecording };
 }
 
-// Hook for global shortcuts
+// Hook for global shortcuts - using ref to avoid stale closure
 export function useGlobalShortcut(
   shortcut: string,
   callback: () => void
 ) {
+  const callbackRef = useRef(callback);
+
+  // Keep the ref updated with the latest callback
+  useEffect(() => {
+    callbackRef.current = callback;
+  }, [callback]);
+
   useEffect(() => {
     if (!isTauri()) return;
 
-    let unregister: (() => void) | null = null;
+    let unregisterFn: (() => Promise<void>) | null = null;
 
     const setup = async () => {
       try {
-        const { register, unregister: unreg } = await import(
+        const { register, unregister } = await import(
           "@tauri-apps/plugin-global-shortcut"
         );
 
+        console.log("Registering shortcut:", shortcut);
+
         await register(shortcut, (event) => {
           if (event.state === "Pressed") {
-            callback();
+            console.log("Shortcut pressed:", shortcut);
+            callbackRef.current();
           }
         });
 
-        unregister = async () => {
-          await unreg(shortcut);
-        };
+        unregisterFn = () => unregister(shortcut);
+        console.log("Shortcut registered successfully");
       } catch (error) {
         console.error("Failed to register shortcut:", error);
       }
@@ -86,11 +99,11 @@ export function useGlobalShortcut(
     setup();
 
     return () => {
-      if (unregister) {
-        unregister();
+      if (unregisterFn) {
+        unregisterFn().catch(console.error);
       }
     };
-  }, [shortcut, callback]);
+  }, [shortcut]); // Only re-register when shortcut changes, not callback
 }
 
 // Hook for clipboard

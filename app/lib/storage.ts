@@ -1,5 +1,8 @@
 "use client";
 
+// Backend API URL
+export const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://dictado-api.vercel.app";
+
 // Local storage keys
 const STORAGE_KEYS = {
   API_KEY: "dictado_api_key",
@@ -10,7 +13,20 @@ const STORAGE_KEYS = {
   HISTORY: "dictado_history",
   LICENSE_KEY: "dictado_license",
   SOUND_ENABLED: "dictado_sound",
+  DEVICE_ID: "dictado_device_id",
 };
+
+// Generate or get device ID (for usage tracking)
+export function getDeviceId(): string {
+  if (typeof window === "undefined") return "";
+
+  let deviceId = localStorage.getItem(STORAGE_KEYS.DEVICE_ID);
+  if (!deviceId) {
+    deviceId = "dev_" + Math.random().toString(36).substring(2) + Date.now().toString(36);
+    localStorage.setItem(STORAGE_KEYS.DEVICE_ID, deviceId);
+  }
+  return deviceId;
+}
 
 export interface TranscriptionHistory {
   id: string;
@@ -34,7 +50,7 @@ export function getSettings(): AppSettings {
   if (typeof window === "undefined") {
     return {
       apiKey: "",
-      apiProvider: "groq",
+      apiProvider: "backend",
       language: "es",
       model: "small",
       soundEnabled: true,
@@ -44,7 +60,7 @@ export function getSettings(): AppSettings {
 
   return {
     apiKey: localStorage.getItem(STORAGE_KEYS.API_KEY) || "",
-    apiProvider: (localStorage.getItem(STORAGE_KEYS.API_PROVIDER) as AppSettings["apiProvider"]) || "groq",
+    apiProvider: (localStorage.getItem(STORAGE_KEYS.API_PROVIDER) as AppSettings["apiProvider"]) || "backend",
     language: localStorage.getItem(STORAGE_KEYS.LANGUAGE) || "es",
     model: localStorage.getItem(STORAGE_KEYS.MODEL) || "small",
     soundEnabled: localStorage.getItem(STORAGE_KEYS.SOUND_ENABLED) !== "false",
@@ -112,10 +128,11 @@ export function clearHistory(): void {
   localStorage.removeItem(STORAGE_KEYS.HISTORY);
 }
 
-// Check if license is valid (simple check, backend should validate)
+// Check if license is valid (simple check, backend validates the real one)
 export function isLicenseValid(): boolean {
   const settings = getSettings();
-  return settings.licenseKey.toUpperCase().startsWith("DICTADO-PRO");
+  // License format: DICTADO-XXXX-XXXX-XXXX
+  return settings.licenseKey.toUpperCase().startsWith("DICTADO-") && settings.licenseKey.length === 23;
 }
 
 // Get daily usage (for free tier limit)

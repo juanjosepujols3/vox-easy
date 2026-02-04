@@ -4,6 +4,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Mutex;
 
 static RECORDING: AtomicBool = AtomicBool::new(false);
+static RECORDING_STARTED: AtomicBool = AtomicBool::new(false);
 static AUDIO_DATA: Mutex<Option<Vec<f32>>> = Mutex::new(None);
 static SAMPLE_RATE: Mutex<Option<u32>> = Mutex::new(None);
 
@@ -15,6 +16,9 @@ pub fn start_recording() -> Result<(), Box<dyn std::error::Error + Send + Sync>>
     if RECORDING.load(Ordering::SeqCst) {
         return Err("Already recording".into());
     }
+
+    // Reset state
+    RECORDING_STARTED.store(false, Ordering::SeqCst);
 
     // Initialize audio data storage
     {
@@ -28,9 +32,22 @@ pub fn start_recording() -> Result<(), Box<dyn std::error::Error + Send + Sync>>
     std::thread::spawn(move || {
         if let Err(e) = record_audio() {
             log::error!("Recording error: {}", e);
+            RECORDING.store(false, Ordering::SeqCst);
         }
     });
 
+    // Wait for recording to actually start (max 2 seconds)
+    let start = std::time::Instant::now();
+    while !RECORDING_STARTED.load(Ordering::SeqCst) && start.elapsed().as_secs() < 2 {
+        std::thread::sleep(std::time::Duration::from_millis(50));
+    }
+
+    if !RECORDING_STARTED.load(Ordering::SeqCst) {
+        RECORDING.store(false, Ordering::SeqCst);
+        return Err("Failed to start recording - check microphone permissions".into());
+    }
+
+    log::info!("Recording started successfully");
     Ok(())
 }
 
@@ -38,7 +55,7 @@ pub fn stop_recording() -> Result<Vec<u8>, Box<dyn std::error::Error + Send + Sy
     RECORDING.store(false, Ordering::SeqCst);
 
     // Wait a bit for the recording thread to finish
-    std::thread::sleep(std::time::Duration::from_millis(100));
+    std::thread::sleep(std::time::Duration::from_millis(200));
 
     // Get the audio data
     let samples = {
@@ -51,19 +68,32 @@ pub fn stop_recording() -> Result<Vec<u8>, Box<dyn std::error::Error + Send + Sy
         rate.unwrap_or(44100)
     };
 
+    log::info!("Audio samples captured: {}, sample_rate: {}", samples.len(), sample_rate);
+
+    if samples.is_empty() {
+        log::warn!("No audio samples captured! Check microphone permissions.");
+        return Err("No audio captured. Check microphone permissions.".into());
+    }
+
     // Convert to WAV
     let wav_data = samples_to_wav(&samples, sample_rate)?;
+    log::info!("WAV data size: {} bytes", wav_data.len());
 
     Ok(wav_data)
 }
 
 fn record_audio() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let host = cpal::default_host();
+    log::info!("Audio host: {:?}", host.id());
+
     let device = host
         .default_input_device()
         .ok_or("No input device available")?;
 
+    log::info!("Input device: {:?}", device.name().unwrap_or_default());
+
     let config = device.default_input_config()?;
+    log::info!("Audio config: {:?}", config);
     let sample_rate = config.sample_rate().0;
 
     {
@@ -124,12 +154,17 @@ fn record_audio() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     };
 
     stream.play()?;
+    log::info!("Audio stream started playing");
+
+    // Signal that recording has started
+    RECORDING_STARTED.store(true, Ordering::SeqCst);
 
     // Keep recording while flag is true
     while RECORDING.load(Ordering::SeqCst) {
         std::thread::sleep(std::time::Duration::from_millis(10));
     }
 
+    log::info!("Recording loop ended");
     Ok(())
 }
 

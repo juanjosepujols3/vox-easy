@@ -96,6 +96,43 @@ export async function transcribeWithGroq(
 }
 
 /**
+ * Transcribe using Dictado backend API (includes usage tracking & freemium)
+ */
+export async function transcribeWithDictadoBackend(
+  audioData: Uint8Array,
+  deviceId: string,
+  options: TranscriptionOptions = {}
+): Promise<TranscriptionResult & { status?: { remaining: number; isPro: boolean } }> {
+  const { API_URL } = await import("./storage");
+
+  const formData = new FormData();
+  const blob = new Blob([audioData.buffer.slice(audioData.byteOffset, audioData.byteOffset + audioData.byteLength) as ArrayBuffer], { type: "audio/wav" });
+  formData.append("audio", blob, "recording.wav");
+
+  if (options.language) {
+    formData.append("language", options.language);
+  }
+
+  const response = await fetch(`${API_URL}/api/transcribe`, {
+    method: "POST",
+    headers: {
+      "X-Device-Id": deviceId,
+    },
+    body: formData,
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    if (response.status === 403) {
+      throw new Error(error.message || "Límite diario alcanzado. Actualiza a Pro para uso ilimitado.");
+    }
+    throw new Error(error.error || `Transcription failed: ${response.statusText}`);
+  }
+
+  return response.json();
+}
+
+/**
  * Transcribe using your own backend API
  */
 export async function transcribeWithBackend(
@@ -145,6 +182,7 @@ export async function transcribe(
     apiKey?: string;
     backendUrl?: string;
     token?: string;
+    deviceId?: string;
   },
   options: TranscriptionOptions = {}
 ): Promise<TranscriptionResult> {
@@ -158,8 +196,10 @@ export async function transcribe(
       return transcribeWithGroq(audioData, config.apiKey, options);
 
     case "backend":
-      if (!config.backendUrl) throw new Error("Backend URL required");
-      return transcribeWithBackend(audioData, config.backendUrl, config.token, options);
+      // Use Dictado backend (default - no API key needed from user)
+      const { getDeviceId } = await import("./storage");
+      const deviceId = config.deviceId || getDeviceId();
+      return transcribeWithDictadoBackend(audioData, deviceId, options);
 
     default:
       throw new Error(`Unknown provider: ${config.provider}`);
