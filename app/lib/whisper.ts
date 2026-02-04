@@ -24,7 +24,7 @@ export async function transcribeWithOpenAI(
   options: TranscriptionOptions = {}
 ): Promise<TranscriptionResult> {
   const formData = new FormData();
-  const blob = new Blob([audioData], { type: "audio/wav" });
+  const blob = new Blob([audioData.buffer.slice(audioData.byteOffset, audioData.byteOffset + audioData.byteLength) as ArrayBuffer], { type: "audio/wav" });
   formData.append("file", blob, "recording.wav");
   formData.append("model", options.model || "whisper-1");
 
@@ -66,7 +66,7 @@ export async function transcribeWithGroq(
   options: TranscriptionOptions = {}
 ): Promise<TranscriptionResult> {
   const formData = new FormData();
-  const blob = new Blob([audioData], { type: "audio/wav" });
+  const blob = new Blob([audioData.buffer.slice(audioData.byteOffset, audioData.byteOffset + audioData.byteLength) as ArrayBuffer], { type: "audio/wav" });
   formData.append("file", blob, "recording.wav");
   formData.append("model", "whisper-large-v3");
 
@@ -105,7 +105,7 @@ export async function transcribeWithBackend(
   options: TranscriptionOptions = {}
 ): Promise<TranscriptionResult> {
   const formData = new FormData();
-  const blob = new Blob([audioData], { type: "audio/wav" });
+  const blob = new Blob([audioData.buffer.slice(audioData.byteOffset, audioData.byteOffset + audioData.byteLength) as ArrayBuffer], { type: "audio/wav" });
   formData.append("audio", blob, "recording.wav");
 
   if (options.language) {

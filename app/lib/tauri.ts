@@ -146,7 +146,8 @@ export async function transcribeAudio(
   apiKey?: string
 ): Promise<string> {
   const formData = new FormData();
-  const blob = new Blob([audioData], { type: "audio/wav" });
+  const arrayBuffer = audioData.buffer.slice(audioData.byteOffset, audioData.byteOffset + audioData.byteLength) as ArrayBuffer;
+  const blob = new Blob([arrayBuffer], { type: "audio/wav" });
   formData.append("audio", blob, "recording.wav");
 
   const headers: Record<string, string> = {};

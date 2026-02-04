@@ -2,7 +2,7 @@
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "Dictado",
   "version": "1.0.0",
-  "identifier": "com.dictado.app",
+  "identifier": "com.voxeasy.dictado",
   "build": {
     "frontendDist": "../out",
     "devUrl": "http://localhost:3000",
