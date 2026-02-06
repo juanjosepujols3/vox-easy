@@ -1,0 +1,9 @@
+.venv/
+.cache/
+node_modules/
+models/
+__pycache__/
+*.pyc
+.DS_Store
+*.egg-info/
+temp_*.wav

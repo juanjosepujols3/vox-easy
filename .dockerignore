@@ -1,0 +1,14 @@
+.venv/
+.cache/
+node_modules/
+models/
+__pycache__/
+*.pyc
+.git/
+.DS_Store
+tests/
+assets/
+main.py
+package.json
+package-lock.json
+*.egg-info/
