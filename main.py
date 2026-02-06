@@ -7,7 +7,7 @@ import requests
 from engine.audio import AudioRecorder
 from engine.keyboard import KeyboardController
 
-API_URL = os.getenv("VOX_API_URL", "https://voxeasy.com")
+API_URL = os.getenv("VOX_API_URL", "https://unicords-voxeasy-app.ujamzy.easypanel.host")
 CONFIG_PATH = os.path.join(os.path.expanduser("~"), ".voxeasy", "config.json")
 
 

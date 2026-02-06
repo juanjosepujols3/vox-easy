@@ -1,68 +1,534 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es" data-theme="dark">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vox | Your Invisible Secretary</title>
-    <link rel="stylesheet" href="style.css" />
+    <title>Vox Easy | Dicta con tu voz, escribe con IA</title>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.14/dist/full.min.css" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: { sans: ['Inter', 'sans-serif'] },
+            colors: {
+              vox: { purple: '#a29bfe', green: '#55e6c1', dark: '#0a0a0c', card: 'rgba(255,255,255,0.03)' }
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+      body { font-family: 'Inter', sans-serif; background: #0a0a0c; }
+      .gradient-text { background: linear-gradient(135deg, #a29bfe, #55e6c1); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+      .glass { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); backdrop-filter: blur(12px); }
+      .glow-purple { box-shadow: 0 0 40px rgba(162,155,254,0.15); }
+      .glow-green { box-shadow: 0 0 40px rgba(85,230,193,0.15); }
+      .btn-gradient { background: linear-gradient(135deg, #a29bfe, #55e6c1); color: #000; border: none; }
+      .btn-gradient:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(162,155,254,0.3); }
+      .hero-bg { background: radial-gradient(ellipse at 50% 0%, rgba(162,155,254,0.08) 0%, transparent 60%); }
+      .feature-icon { background: linear-gradient(135deg, rgba(162,155,254,0.15), rgba(85,230,193,0.15)); }
+      .pricing-popular { border: 2px solid #a29bfe; }
+      .marquee { animation: scroll 20s linear infinite; }
+      @keyframes scroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+      .fade-in { opacity: 0; transform: translateY(20px); transition: all 0.6s ease; }
+      .fade-in.visible { opacity: 1; transform: translateY(0); }
+    </style>
 </head>
-<body>
-    <header>
-        <div class="container header-container">
-            <div class="logo">
-                <img src="vox_logo_icon.png" alt="Vox Logo" onerror="this.src='https://ui-avatars.com/api/?name=Vox&background=a29bfe&color=000'" />
-                Vox
-            </div>
-            <nav>
-                <ul>
-                    <li><a href="#features">Features</a></li>
-                    <li><a href="#about">About</a></li>
-                    <li><a href="https://github.com/juanjosepujols/vox" target="_blank">Registry</a></li>
-                </ul>
-            </nav>
+<body class="text-gray-100">
+
+    <!-- Navbar -->
+    <div class="navbar fixed top-0 z-50 px-6 lg:px-12 h-20" style="background: rgba(10,10,12,0.85); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255,255,255,0.06);">
+        <div class="navbar-start">
+            <a href="/" class="text-2xl font-black gradient-text tracking-tight">Vox Easy</a>
         </div>
-    </header>
+        <div class="navbar-center hidden lg:flex">
+            <ul class="menu menu-horizontal px-1 gap-1">
+                <li><a href="#features" class="text-gray-400 hover:text-white transition">Funciones</a></li>
+                <li><a href="#how-it-works" class="text-gray-400 hover:text-white transition">Como funciona</a></li>
+                <li><a href="#pricing" class="text-gray-400 hover:text-white transition">Precios</a></li>
+                <li><a href="#faq" class="text-gray-400 hover:text-white transition">FAQ</a></li>
+            </ul>
+        </div>
+        <div class="navbar-end gap-3">
+            <a href="/login.html" class="btn btn-ghost btn-sm text-gray-300">Iniciar sesion</a>
+            <a href="/login.html?register=1" class="btn btn-sm btn-gradient font-bold rounded-full px-5">Descargar gratis</a>
+        </div>
+        <!-- Mobile menu -->
+        <div class="navbar-end lg:hidden">
+            <div class="dropdown dropdown-end">
+                <div tabindex="0" role="button" class="btn btn-ghost">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h8m-8 6h16" /></svg>
+                </div>
+                <ul tabindex="0" class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow rounded-box w-52 glass">
+                    <li><a href="#features">Funciones</a></li>
+                    <li><a href="#how-it-works">Como funciona</a></li>
+                    <li><a href="#pricing">Precios</a></li>
+                    <li><a href="/login.html">Iniciar sesion</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
 
-    <main>
-        <section class="hero container">
-            <div class="hero-content">
-                <h1>The <span>Invisible Secretary</span> for your daily workflow.</h1>
-                <p>Dictate to any app, mail, or terminal with a single command. Powered by local AI for total privacy.</p>
-                <div class="hero-btns">
-                    <a href="#download" class="btn-primary">Get the App</a>
+    <!-- Hero -->
+    <section class="hero-bg min-h-screen flex items-center pt-20">
+        <div class="container mx-auto px-6 lg:px-12">
+            <div class="grid lg:grid-cols-2 gap-16 items-center">
+                <div class="fade-in">
+                    <div class="badge badge-outline border-vox-purple/30 text-vox-purple mb-6 px-4 py-3 text-sm">
+                        3,000 palabras gratis por semana
+                    </div>
+                    <h1 class="text-5xl lg:text-7xl font-black leading-[1.05] mb-6">
+                        No escribas,<br/><span class="gradient-text">solo habla.</span>
+                    </h1>
+                    <p class="text-xl text-gray-400 mb-8 max-w-lg leading-relaxed">
+                        Vox Easy convierte tu voz en texto pulido con IA. Dicta en cualquier app, en cualquier momento. 4x mas rapido que escribir.
+                    </p>
+                    <div class="flex flex-wrap gap-4">
+                        <a href="/login.html?register=1" class="btn btn-lg btn-gradient rounded-full px-8 font-bold text-base">
+                            Descargar para Mac
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                        </a>
+                        <a href="#how-it-works" class="btn btn-lg btn-ghost rounded-full px-8 text-gray-300 border border-gray-700 hover:border-vox-purple">
+                            Ver como funciona
+                        </a>
+                    </div>
+                    <div class="flex items-center gap-6 mt-8 text-sm text-gray-500">
+                        <span class="flex items-center gap-2">
+                            <svg class="w-4 h-4 text-vox-green" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                            Mac Intel & Apple Silicon
+                        </span>
+                        <span class="flex items-center gap-2">
+                            <svg class="w-4 h-4 text-vox-green" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                            Sin instalacion compleja
+                        </span>
+                        <span class="flex items-center gap-2">
+                            <svg class="w-4 h-4 text-vox-green" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                            Gratis para empezar
+                        </span>
+                    </div>
+                </div>
+                <div class="fade-in hidden lg:block">
+                    <div class="glass rounded-3xl p-8 glow-purple">
+                        <div class="mockup-code bg-base-300/50 rounded-2xl">
+                            <pre data-prefix="$"><code>Cmd + Shift + V</code></pre>
+                            <pre data-prefix=">" class="text-vox-green"><code>Escuchando...</code></pre>
+                            <pre data-prefix=">" class="text-vox-purple"><code>Transcribiendo con IA...</code></pre>
+                            <pre data-prefix="" class="text-white"><code>"Hola equipo, les comparto el resumen</code></pre>
+                            <pre data-prefix="" class="text-white"><code> de la reunion de hoy..."</code></pre>
+                            <pre data-prefix="✓" class="text-vox-green"><code>Texto insertado automaticamente</code></pre>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="hero-image">
-                <img src="vox_hero_illustration.png" alt="Vox AI Illustration" onerror="this.src='https://placehold.co/600x400/0a0a0c/f5f6fa?text=Vox+AI'" />
-            </div>
-        </section>
+        </div>
+    </section>
 
-        <section id="features" class="features container">
-            <div class="section-title">
-                <h2>Universal Speed. Total Privacy.</h2>
-                <p>Designed for power users who value their time and data.</p>
+    <!-- Logos / Social Proof -->
+    <section class="py-16 border-y border-white/5">
+        <div class="container mx-auto px-6 text-center">
+            <p class="text-gray-500 text-sm mb-8 uppercase tracking-widest">Funciona con tus apps favoritas</p>
+            <div class="overflow-hidden">
+                <div class="flex gap-12 items-center justify-center flex-wrap text-gray-500 text-lg font-semibold">
+                    <span>Slack</span>
+                    <span class="text-gray-700">|</span>
+                    <span>Gmail</span>
+                    <span class="text-gray-700">|</span>
+                    <span>VS Code</span>
+                    <span class="text-gray-700">|</span>
+                    <span>Notion</span>
+                    <span class="text-gray-700">|</span>
+                    <span>WhatsApp</span>
+                    <span class="text-gray-700">|</span>
+                    <span>Terminal</span>
+                    <span class="text-gray-700">|</span>
+                    <span>Figma</span>
+                    <span class="text-gray-700">|</span>
+                    <span>ChatGPT</span>
+                    <span class="text-gray-700">|</span>
+                    <span>Linear</span>
+                </div>
             </div>
-            <div class="feature-grid">
-                <div class="feature-card">
-                    <h3>Global Hotkey</h3>
-                    <p>Press Cmd+Shift+V anywhere. Type with your voice into Terminal, Slack, or Gmail instantly.</p>
-                </div>
-                <div class="feature-card">
-                    <h3>100% Local AI</h3>
-                    <p>No audio leaves your machine. Processing happens locally using Whisper's tiny-v3 model.</p>
-                </div>
-                <div class="feature-card">
-                    <h3>Auto-Type</h3>
-                    <p>No copy-pasting required. Vox automatically simulates typing for a seamless experience.</p>
-                </div>
-            </div>
-        </section>
-    </main>
+        </div>
+    </section>
 
-    <footer>
-        <div class="container">
-            <p>&copy; 2026 Vox AI. Built for the future of dictation.</p>
+    <!-- Features -->
+    <section id="features" class="py-24">
+        <div class="container mx-auto px-6 lg:px-12">
+            <div class="text-center mb-16 fade-in">
+                <h2 class="text-4xl lg:text-5xl font-black mb-4">Velocidad universal. <span class="gradient-text">Privacidad total.</span></h2>
+                <p class="text-gray-400 text-lg max-w-2xl mx-auto">Disenado para profesionales que valoran su tiempo y sus datos.</p>
+            </div>
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Feature 1 -->
+                <div class="glass rounded-2xl p-8 hover:border-vox-purple/50 transition-all duration-300 fade-in">
+                    <div class="feature-icon w-14 h-14 rounded-xl flex items-center justify-center mb-5">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-vox-purple" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">4x mas rapido</h3>
+                    <p class="text-gray-400 leading-relaxed">Dicta a 220 palabras por minuto vs 45 escribiendo. Termina en minutos lo que antes tomaba horas.</p>
+                </div>
+                <!-- Feature 2 -->
+                <div class="glass rounded-2xl p-8 hover:border-vox-purple/50 transition-all duration-300 fade-in">
+                    <div class="feature-icon w-14 h-14 rounded-xl flex items-center justify-center mb-5">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-vox-green" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064" /></svg>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">Hotkey global</h3>
+                    <p class="text-gray-400 leading-relaxed">Presiona Cmd+Shift+V en cualquier app. Slack, Gmail, Terminal, WhatsApp. Funciona en todas partes.</p>
+                </div>
+                <!-- Feature 3 -->
+                <div class="glass rounded-2xl p-8 hover:border-vox-purple/50 transition-all duration-300 fade-in">
+                    <div class="feature-icon w-14 h-14 rounded-xl flex items-center justify-center mb-5">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-vox-purple" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">IA en la nube</h3>
+                    <p class="text-gray-400 leading-relaxed">Procesamiento con Whisper AI en nuestros servidores. Sin descargas pesadas, sin consumir tu CPU.</p>
+                </div>
+                <!-- Feature 4 -->
+                <div class="glass rounded-2xl p-8 hover:border-vox-purple/50 transition-all duration-300 fade-in">
+                    <div class="feature-icon w-14 h-14 rounded-xl flex items-center justify-center mb-5">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-vox-green" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">Auto-escritura</h3>
+                    <p class="text-gray-400 leading-relaxed">El texto se escribe automaticamente donde tengas el cursor. Sin copiar, sin pegar. Magia pura.</p>
+                </div>
+                <!-- Feature 5 -->
+                <div class="glass rounded-2xl p-8 hover:border-vox-purple/50 transition-all duration-300 fade-in">
+                    <div class="feature-icon w-14 h-14 rounded-xl flex items-center justify-center mb-5">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-vox-purple" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" /></svg>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">Multi-idioma</h3>
+                    <p class="text-gray-400 leading-relaxed">Soporte para espanol, ingles, frances, portugues y 90+ idiomas con deteccion automatica.</p>
+                </div>
+                <!-- Feature 6 -->
+                <div class="glass rounded-2xl p-8 hover:border-vox-purple/50 transition-all duration-300 fade-in">
+                    <div class="feature-icon w-14 h-14 rounded-xl flex items-center justify-center mb-5">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-vox-green" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">Ultra ligera</h3>
+                    <p class="text-gray-400 leading-relaxed">App de solo 73MB. Se instala en segundos, corre en segundo plano y no consume recursos.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How it works -->
+    <section id="how-it-works" class="py-24 hero-bg">
+        <div class="container mx-auto px-6 lg:px-12">
+            <div class="text-center mb-16 fade-in">
+                <h2 class="text-4xl lg:text-5xl font-black mb-4">Asi de <span class="gradient-text">simple.</span></h2>
+                <p class="text-gray-400 text-lg">Tres pasos. Cero complicaciones.</p>
+            </div>
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="text-center fade-in">
+                    <div class="w-20 h-20 rounded-full feature-icon flex items-center justify-center mx-auto mb-6 text-3xl font-black gradient-text">1</div>
+                    <h3 class="text-xl font-bold mb-3">Descarga e instala</h3>
+                    <p class="text-gray-400">Descarga el .dmg, arrastra a Aplicaciones. Listo en 30 segundos.</p>
+                </div>
+                <div class="text-center fade-in">
+                    <div class="w-20 h-20 rounded-full feature-icon flex items-center justify-center mx-auto mb-6 text-3xl font-black gradient-text">2</div>
+                    <h3 class="text-xl font-bold mb-3">Presiona el hotkey</h3>
+                    <p class="text-gray-400">Cmd+Shift+V desde cualquier app. Vox empieza a escuchar al instante.</p>
+                </div>
+                <div class="text-center fade-in">
+                    <div class="w-20 h-20 rounded-full feature-icon flex items-center justify-center mx-auto mb-6 text-3xl font-black gradient-text">3</div>
+                    <h3 class="text-xl font-bold mb-3">Habla y listo</h3>
+                    <p class="text-gray-400">Tu voz se convierte en texto y se escribe automaticamente. Asi de facil.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats -->
+    <section class="py-20 border-y border-white/5">
+        <div class="container mx-auto px-6">
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-8">
+                <div class="text-center fade-in">
+                    <div class="text-4xl lg:text-5xl font-black gradient-text mb-2">4x</div>
+                    <p class="text-gray-400">Mas rapido que escribir</p>
+                </div>
+                <div class="text-center fade-in">
+                    <div class="text-4xl lg:text-5xl font-black gradient-text mb-2">220</div>
+                    <p class="text-gray-400">Palabras por minuto</p>
+                </div>
+                <div class="text-center fade-in">
+                    <div class="text-4xl lg:text-5xl font-black gradient-text mb-2">90+</div>
+                    <p class="text-gray-400">Idiomas soportados</p>
+                </div>
+                <div class="text-center fade-in">
+                    <div class="text-4xl lg:text-5xl font-black gradient-text mb-2">73MB</div>
+                    <p class="text-gray-400">Peso de la app</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Use Cases -->
+    <section class="py-24">
+        <div class="container mx-auto px-6 lg:px-12">
+            <div class="text-center mb-16 fade-in">
+                <h2 class="text-4xl lg:text-5xl font-black mb-4">Para <span class="gradient-text">todos.</span></h2>
+                <p class="text-gray-400 text-lg max-w-2xl mx-auto">Profesionales, estudiantes, creadores. Vox se adapta a tu flujo de trabajo.</p>
+            </div>
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="glass rounded-2xl p-6 text-center hover:border-vox-purple/50 transition fade-in">
+                    <div class="text-3xl mb-3">&#x1f4bb;</div>
+                    <h3 class="font-bold mb-2">Desarrolladores</h3>
+                    <p class="text-gray-400 text-sm">Dicta comentarios, commits y documentacion sin dejar el teclado.</p>
+                </div>
+                <div class="glass rounded-2xl p-6 text-center hover:border-vox-purple/50 transition fade-in">
+                    <div class="text-3xl mb-3">&#x1f4e7;</div>
+                    <h3 class="font-bold mb-2">Ventas</h3>
+                    <p class="text-gray-400 text-sm">Responde emails y mensajes 4x mas rapido. Cierra mas deals.</p>
+                </div>
+                <div class="glass rounded-2xl p-6 text-center hover:border-vox-purple/50 transition fade-in">
+                    <div class="text-3xl mb-3">&#x1f393;</div>
+                    <h3 class="font-bold mb-2">Estudiantes</h3>
+                    <p class="text-gray-400 text-sm">Toma notas de clase dictando. Escribe ensayos mientras caminas.</p>
+                </div>
+                <div class="glass rounded-2xl p-6 text-center hover:border-vox-purple/50 transition fade-in">
+                    <div class="text-3xl mb-3">&#x1f3a8;</div>
+                    <h3 class="font-bold mb-2">Creadores</h3>
+                    <p class="text-gray-400 text-sm">Guiones, posts, descripciones. Crea contenido a la velocidad del pensamiento.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing -->
+    <section id="pricing" class="py-24 hero-bg">
+        <div class="container mx-auto px-6 lg:px-12">
+            <div class="text-center mb-16 fade-in">
+                <h2 class="text-4xl lg:text-5xl font-black mb-4">Precios <span class="gradient-text">simples.</span></h2>
+                <p class="text-gray-400 text-lg">Empieza gratis. Actualiza cuando quieras.</p>
+            </div>
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-5xl mx-auto">
+                <!-- Free -->
+                <div class="glass rounded-3xl p-8 flex flex-col fade-in">
+                    <h3 class="text-xl font-bold mb-2">Free</h3>
+                    <p class="text-gray-400 text-sm mb-6">Perfecto para probar Vox</p>
+                    <div class="mb-8">
+                        <span class="text-5xl font-black">$0</span>
+                        <span class="text-gray-400">/siempre</span>
+                    </div>
+                    <ul class="space-y-3 mb-8 flex-1">
+                        <li class="flex items-center gap-3 text-gray-300">
+                            <svg class="w-5 h-5 text-vox-green flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                            3,000 palabras/semana
+                        </li>
+                        <li class="flex items-center gap-3 text-gray-300">
+                            <svg class="w-5 h-5 text-vox-green flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                            Hotkey global
+                        </li>
+                        <li class="flex items-center gap-3 text-gray-300">
+                            <svg class="w-5 h-5 text-vox-green flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                            Auto-escritura
+                        </li>
+                        <li class="flex items-center gap-3 text-gray-300">
+                            <svg class="w-5 h-5 text-vox-green flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                            Multi-idioma
+                        </li>
+                    </ul>
+                    <a href="/login.html?register=1" class="btn btn-outline rounded-full w-full">Empezar gratis</a>
+                </div>
+                <!-- Pro -->
+                <div class="glass rounded-3xl p-8 flex flex-col pricing-popular glow-purple relative fade-in">
+                    <div class="badge badge-sm bg-vox-purple text-black font-bold absolute -top-3 left-1/2 -translate-x-1/2 px-4">MAS POPULAR</div>
+                    <h3 class="text-xl font-bold mb-2">Pro</h3>
+                    <p class="text-gray-400 text-sm mb-6">Para profesionales y power users</p>
+                    <div class="mb-8">
+                        <span class="text-5xl font-black">$9</span>
+                        <span class="text-gray-400">/mes</span>
+                    </div>
+                    <ul class="space-y-3 mb-8 flex-1">
+                        <li class="flex items-center gap-3 text-gray-300">
+                            <svg class="w-5 h-5 text-vox-green flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                            <strong>Palabras ilimitadas</strong>
+                        </li>
+                        <li class="flex items-center gap-3 text-gray-300">
+                            <svg class="w-5 h-5 text-vox-green flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                            Transcripcion prioritaria
+                        </li>
+                        <li class="flex items-center gap-3 text-gray-300">
+                            <svg class="w-5 h-5 text-vox-green flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                            Todos los idiomas
+                        </li>
+                        <li class="flex items-center gap-3 text-gray-300">
+                            <svg class="w-5 h-5 text-vox-green flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                            Soporte prioritario
+                        </li>
+                        <li class="flex items-center gap-3 text-gray-300">
+                            <svg class="w-5 h-5 text-vox-green flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                            Updates anticipados
+                        </li>
+                    </ul>
+                    <a href="/login.html?register=1&plan=pro" class="btn btn-gradient rounded-full w-full font-bold">Obtener Pro</a>
+                </div>
+                <!-- Team -->
+                <div class="glass rounded-3xl p-8 flex flex-col fade-in">
+                    <h3 class="text-xl font-bold mb-2">Team</h3>
+                    <p class="text-gray-400 text-sm mb-6">Para equipos y empresas</p>
+                    <div class="mb-8">
+                        <span class="text-5xl font-black">$7</span>
+                        <span class="text-gray-400">/usuario/mes</span>
+                    </div>
+                    <ul class="space-y-3 mb-8 flex-1">
+                        <li class="flex items-center gap-3 text-gray-300">
+                            <svg class="w-5 h-5 text-vox-green flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                            Todo lo de Pro
+                        </li>
+                        <li class="flex items-center gap-3 text-gray-300">
+                            <svg class="w-5 h-5 text-vox-green flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                            Panel de administracion
+                        </li>
+                        <li class="flex items-center gap-3 text-gray-300">
+                            <svg class="w-5 h-5 text-vox-green flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                            Facturacion centralizada
+                        </li>
+                        <li class="flex items-center gap-3 text-gray-300">
+                            <svg class="w-5 h-5 text-vox-green flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                            Soporte dedicado
+                        </li>
+                    </ul>
+                    <a href="mailto:team@voxeasy.com" class="btn btn-outline rounded-full w-full">Contactar ventas</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials -->
+    <section class="py-24">
+        <div class="container mx-auto px-6 lg:px-12">
+            <div class="text-center mb-16 fade-in">
+                <h2 class="text-4xl lg:text-5xl font-black mb-4">Lo que dicen <span class="gradient-text">nuestros usuarios.</span></h2>
+            </div>
+            <div class="grid md:grid-cols-3 gap-6">
+                <div class="glass rounded-2xl p-8 fade-in">
+                    <div class="flex gap-1 mb-4 text-yellow-400">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+                    <p class="text-gray-300 mb-6 leading-relaxed">"Antes tardaba 20 minutos en un email largo. Ahora lo dicto en 3 minutos. Vox cambio completamente mi productividad."</p>
+                    <div class="flex items-center gap-3">
+                        <div class="avatar placeholder"><div class="bg-vox-purple/20 text-vox-purple rounded-full w-10"><span class="text-sm">MR</span></div></div>
+                        <div><p class="font-semibold text-sm">Maria Rodriguez</p><p class="text-gray-500 text-xs">Product Manager</p></div>
+                    </div>
+                </div>
+                <div class="glass rounded-2xl p-8 fade-in">
+                    <div class="flex gap-1 mb-4 text-yellow-400">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+                    <p class="text-gray-300 mb-6 leading-relaxed">"Como developer, uso Vox para dictar comentarios y documentacion mientras codigo. Es como tener un asistente invisible."</p>
+                    <div class="flex items-center gap-3">
+                        <div class="avatar placeholder"><div class="bg-vox-green/20 text-vox-green rounded-full w-10"><span class="text-sm">CL</span></div></div>
+                        <div><p class="font-semibold text-sm">Carlos Lopez</p><p class="text-gray-500 text-xs">Senior Developer</p></div>
+                    </div>
+                </div>
+                <div class="glass rounded-2xl p-8 fade-in">
+                    <div class="flex gap-1 mb-4 text-yellow-400">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+                    <p class="text-gray-300 mb-6 leading-relaxed">"Tengo problemas de tunel carpiano y Vox me salvo. Puedo seguir trabajando sin dolor. Vale cada centavo del Pro."</p>
+                    <div class="flex items-center gap-3">
+                        <div class="avatar placeholder"><div class="bg-vox-purple/20 text-vox-purple rounded-full w-10"><span class="text-sm">AG</span></div></div>
+                        <div><p class="font-semibold text-sm">Ana Garcia</p><p class="text-gray-500 text-xs">Content Writer</p></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ -->
+    <section id="faq" class="py-24 hero-bg">
+        <div class="container mx-auto px-6 lg:px-12 max-w-3xl">
+            <div class="text-center mb-16 fade-in">
+                <h2 class="text-4xl lg:text-5xl font-black mb-4">Preguntas <span class="gradient-text">frecuentes.</span></h2>
+            </div>
+            <div class="space-y-4 fade-in">
+                <div class="collapse collapse-arrow glass rounded-2xl">
+                    <input type="radio" name="faq" checked="checked" />
+                    <div class="collapse-title text-lg font-semibold">Que tan precisa es la transcripcion?</div>
+                    <div class="collapse-content"><p class="text-gray-400">Vox usa Whisper AI de OpenAI, uno de los modelos de transcripcion mas precisos del mundo. Funciona excelente con espanol, ingles y 90+ idiomas.</p></div>
+                </div>
+                <div class="collapse collapse-arrow glass rounded-2xl">
+                    <input type="radio" name="faq" />
+                    <div class="collapse-title text-lg font-semibold">Necesito internet para usarlo?</div>
+                    <div class="collapse-content"><p class="text-gray-400">Si, el audio se procesa en nuestros servidores con IA. Necesitas conexion a internet para transcribir, pero la app es super ligera y consume muy pocos datos.</p></div>
+                </div>
+                <div class="collapse collapse-arrow glass rounded-2xl">
+                    <input type="radio" name="faq" />
+                    <div class="collapse-title text-lg font-semibold">Funciona en Windows?</div>
+                    <div class="collapse-content"><p class="text-gray-400">Por ahora solo esta disponible para Mac (Intel y Apple Silicon). Windows esta en nuestro roadmap y llegara pronto.</p></div>
+                </div>
+                <div class="collapse collapse-arrow glass rounded-2xl">
+                    <input type="radio" name="faq" />
+                    <div class="collapse-title text-lg font-semibold">Que pasa cuando se acaban mis 3,000 palabras?</div>
+                    <div class="collapse-content"><p class="text-gray-400">Tu limite se resetea cada lunes. Si necesitas mas, el plan Pro te da palabras ilimitadas por solo $9/mes.</p></div>
+                </div>
+                <div class="collapse collapse-arrow glass rounded-2xl">
+                    <input type="radio" name="faq" />
+                    <div class="collapse-title text-lg font-semibold">Puedo cancelar Pro en cualquier momento?</div>
+                    <div class="collapse-content"><p class="text-gray-400">Si, puedes cancelar cuando quieras. No hay contratos ni compromisos. Tu cuenta vuelve al plan Free automaticamente.</p></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Final CTA -->
+    <section class="py-32">
+        <div class="container mx-auto px-6 text-center fade-in">
+            <h2 class="text-4xl lg:text-6xl font-black mb-6">Listo para dejar de<br/><span class="gradient-text">escribir tanto?</span></h2>
+            <p class="text-xl text-gray-400 mb-10 max-w-xl mx-auto">Unete a miles de profesionales que ya dictan en vez de escribir. Empieza con 3,000 palabras gratis.</p>
+            <a href="/login.html?register=1" class="btn btn-lg btn-gradient rounded-full px-10 font-bold text-base">
+                Descargar Vox Easy gratis
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
+            </a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="border-t border-white/5 py-16">
+        <div class="container mx-auto px-6 lg:px-12">
+            <div class="grid md:grid-cols-4 gap-12 mb-12">
+                <div>
+                    <h3 class="text-xl font-black gradient-text mb-4">Vox Easy</h3>
+                    <p class="text-gray-500 text-sm leading-relaxed">Tu secretaria invisible. Convierte tu voz en texto con IA en cualquier app.</p>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-4 text-gray-300">Producto</h4>
+                    <ul class="space-y-2 text-sm text-gray-500">
+                        <li><a href="#features" class="hover:text-white transition">Funciones</a></li>
+                        <li><a href="#pricing" class="hover:text-white transition">Precios</a></li>
+                        <li><a href="#faq" class="hover:text-white transition">FAQ</a></li>
+                        <li><a href="/login.html?register=1" class="hover:text-white transition">Descargar</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-4 text-gray-300">Recursos</h4>
+                    <ul class="space-y-2 text-sm text-gray-500">
+                        <li><a href="#" class="hover:text-white transition">Blog</a></li>
+                        <li><a href="#" class="hover:text-white transition">Casos de uso</a></li>
+                        <li><a href="#" class="hover:text-white transition">Centro de ayuda</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-4 text-gray-300">Legal</h4>
+                    <ul class="space-y-2 text-sm text-gray-500">
+                        <li><a href="#" class="hover:text-white transition">Terminos de servicio</a></li>
+                        <li><a href="#" class="hover:text-white transition">Politica de privacidad</a></li>
+                        <li><a href="mailto:hello@voxeasy.com" class="hover:text-white transition">Contacto</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-white/5 pt-8 text-center text-gray-600 text-sm">
+                <p>&copy; 2026 Vox Easy. Hecho para el futuro del dictado.</p>
+            </div>
         </div>
     </footer>
+
+    <!-- Scroll animations -->
+    <script>
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) entry.target.classList.add('visible');
+            });
+        }, { threshold: 0.1 });
+        document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+    </script>
 </body>
 </html>
