@@ -3,122 +3,233 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vox Easy | Dicta con tu voz, escribe con IA</title>
+    <meta name="description" content="Vox Easy - Convierte tu voz en texto con IA. Dicta en cualquier app, 4x mas rapido que escribir." />
+    <title>Vox Easy | No escribas, solo habla</title>
     <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.14/dist/full.min.css" rel="stylesheet" />
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
     <script>
       tailwind.config = {
         theme: {
           extend: {
             fontFamily: { sans: ['Inter', 'sans-serif'] },
             colors: {
-              vox: { purple: '#a29bfe', green: '#55e6c1', dark: '#0a0a0c', card: 'rgba(255,255,255,0.03)' }
+              vox: { purple: '#a29bfe', green: '#55e6c1', dark: '#08080a', darker: '#050506' }
             }
           }
         }
       }
     </script>
     <style>
-      body { font-family: 'Inter', sans-serif; background: #0a0a0c; }
-      .gradient-text { background: linear-gradient(135deg, #a29bfe, #55e6c1); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-      .glass { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); backdrop-filter: blur(12px); }
-      .glow-purple { box-shadow: 0 0 40px rgba(162,155,254,0.15); }
-      .glow-green { box-shadow: 0 0 40px rgba(85,230,193,0.15); }
-      .btn-gradient { background: linear-gradient(135deg, #a29bfe, #55e6c1); color: #000; border: none; }
-      .btn-gradient:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(162,155,254,0.3); }
-      .hero-bg { background: radial-gradient(ellipse at 50% 0%, rgba(162,155,254,0.08) 0%, transparent 60%); }
-      .feature-icon { background: linear-gradient(135deg, rgba(162,155,254,0.15), rgba(85,230,193,0.15)); }
-      .pricing-popular { border: 2px solid #a29bfe; }
-      .marquee { animation: scroll 20s linear infinite; }
-      @keyframes scroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
-      .fade-in { opacity: 0; transform: translateY(20px); transition: all 0.6s ease; }
-      .fade-in.visible { opacity: 1; transform: translateY(0); }
+      *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+      body { font-family: 'Inter', sans-serif; background: #08080a; color: #e4e4e7; overflow-x: hidden; }
+      ::selection { background: rgba(162,155,254,0.3); }
+
+      /* Gradient Utilities */
+      .gradient-text { background: linear-gradient(135deg, #a29bfe 0%, #55e6c1 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+      .gradient-text-warm { background: linear-gradient(135deg, #a29bfe 0%, #c084fc 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+      .gradient-border { border-image: linear-gradient(135deg, #a29bfe, #55e6c1) 1; }
+
+      /* Glass Card */
+      .glass-card {
+        background: rgba(255,255,255,0.02);
+        border: 1px solid rgba(255,255,255,0.06);
+        backdrop-filter: blur(20px);
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      .glass-card:hover {
+        background: rgba(255,255,255,0.04);
+        border-color: rgba(162,155,254,0.2);
+        transform: translateY(-4px);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.3), 0 0 40px rgba(162,155,254,0.05);
+      }
+
+      /* Glow Accents */
+      .glow-sm { box-shadow: 0 0 20px rgba(162,155,254,0.08); }
+      .glow-md { box-shadow: 0 0 60px rgba(162,155,254,0.12); }
+      .glow-ring { box-shadow: 0 0 0 1px rgba(162,155,254,0.3), 0 0 40px rgba(162,155,254,0.1); }
+
+      /* Background Effects */
+      .hero-glow {
+        background: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(162,155,254,0.12) 0%, transparent 60%),
+                    radial-gradient(ellipse 60% 40% at 80% 20%, rgba(85,230,193,0.06) 0%, transparent 50%);
+      }
+      .section-glow {
+        background: radial-gradient(ellipse 60% 50% at 50% 0%, rgba(162,155,254,0.06) 0%, transparent 60%);
+      }
+
+      /* Buttons */
+      .btn-glow {
+        background: linear-gradient(135deg, #a29bfe, #55e6c1);
+        color: #000;
+        border: none;
+        font-weight: 700;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      .btn-glow:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 30px rgba(162,155,254,0.35);
+        filter: brightness(1.1);
+      }
+
+      /* App Icons */
+      .app-icon {
+        width: 44px; height: 44px;
+        border-radius: 12px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 20px;
+        background: rgba(255,255,255,0.04);
+        border: 1px solid rgba(255,255,255,0.06);
+        transition: all 0.3s;
+      }
+      .app-icon:hover { border-color: rgba(162,155,254,0.3); transform: scale(1.1); }
+
+      /* Animations */
+      .reveal { opacity: 0; transform: translateY(30px); transition: all 0.7s cubic-bezier(0.16, 1, 0.3, 1); }
+      .reveal.visible { opacity: 1; transform: translateY(0); }
+      .reveal-delay-1 { transition-delay: 0.1s; }
+      .reveal-delay-2 { transition-delay: 0.2s; }
+      .reveal-delay-3 { transition-delay: 0.3s; }
+
+      /* Floating animation */
+      @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+      .float { animation: float 6s ease-in-out infinite; }
+      .float-delay { animation: float 6s ease-in-out 2s infinite; }
+
+      /* Pulse dot */
+      @keyframes pulse-dot { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+      .pulse-dot { animation: pulse-dot 2s ease-in-out infinite; }
+
+      /* Pricing toggle */
+      .pricing-annual { display: none; }
+      .pricing-annual.active { display: block; }
+      .pricing-monthly.active { display: block; }
+      .pricing-monthly { display: block; }
+
+      /* Smooth scroll */
+      html { scroll-behavior: smooth; }
+
+      /* Divider line */
+      .section-divider { height: 1px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent); }
+
+      /* Stat counter */
+      .stat-number { font-variant-numeric: tabular-nums; }
+
+      /* Mobile nav */
+      @media (max-width: 1023px) {
+        .desktop-nav { display: none !important; }
+        .desktop-cta { display: none !important; }
+      }
+      @media (min-width: 1024px) {
+        .mobile-menu { display: none !important; }
+      }
     </style>
 </head>
-<body class="text-gray-100">
+<body>
 
-    <!-- Navbar -->
-    <div class="navbar fixed top-0 z-50 px-6 lg:px-12 h-20" style="background: rgba(10,10,12,0.85); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255,255,255,0.06);">
-        <div class="navbar-start">
-            <a href="/" class="text-2xl font-black gradient-text tracking-tight">Vox Easy</a>
-        </div>
-        <div class="navbar-center hidden lg:flex">
-            <ul class="menu menu-horizontal px-1 gap-1">
-                <li><a href="#features" class="text-gray-400 hover:text-white transition">Funciones</a></li>
-                <li><a href="#how-it-works" class="text-gray-400 hover:text-white transition">Como funciona</a></li>
-                <li><a href="#pricing" class="text-gray-400 hover:text-white transition">Precios</a></li>
-                <li><a href="#faq" class="text-gray-400 hover:text-white transition">FAQ</a></li>
-            </ul>
-        </div>
-        <div class="navbar-end gap-3">
-            <a href="/login.html" class="btn btn-ghost btn-sm text-gray-300">Iniciar sesion</a>
-            <a href="/login.html?register=1" class="btn btn-sm btn-gradient font-bold rounded-full px-5">Descargar gratis</a>
-        </div>
-        <!-- Mobile menu -->
-        <div class="navbar-end lg:hidden">
-            <div class="dropdown dropdown-end">
-                <div tabindex="0" role="button" class="btn btn-ghost">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h8m-8 6h16" /></svg>
+    <!-- ==================== NAVBAR ==================== -->
+    <nav class="fixed top-0 w-full z-50 px-4 lg:px-8 py-4">
+        <div class="max-w-6xl mx-auto flex items-center justify-between rounded-2xl px-5 py-3"
+             style="background: rgba(8,8,10,0.8); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.05);">
+            <a href="/" class="text-xl font-black gradient-text tracking-tight">Vox Easy</a>
+
+            <div class="desktop-nav flex items-center gap-8">
+                <a href="#features" class="text-sm text-zinc-400 hover:text-white transition-colors">Funciones</a>
+                <a href="#how" class="text-sm text-zinc-400 hover:text-white transition-colors">Como funciona</a>
+                <a href="#pricing" class="text-sm text-zinc-400 hover:text-white transition-colors">Precios</a>
+                <a href="#faq" class="text-sm text-zinc-400 hover:text-white transition-colors">FAQ</a>
+            </div>
+
+            <div class="desktop-cta flex items-center gap-3">
+                <a href="/login.html" class="text-sm text-zinc-400 hover:text-white transition-colors px-3 py-2">Entrar</a>
+                <a href="/login.html?register=1" class="btn btn-sm btn-glow rounded-xl px-5 text-sm">Empezar gratis</a>
+            </div>
+
+            <!-- Mobile -->
+            <div class="mobile-menu dropdown dropdown-end">
+                <div tabindex="0" role="button" class="btn btn-ghost btn-sm">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3.75 9h16.5m-16.5 6.75h16.5"/></svg>
                 </div>
-                <ul tabindex="0" class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow rounded-box w-52 glass">
-                    <li><a href="#features">Funciones</a></li>
-                    <li><a href="#how-it-works">Como funciona</a></li>
-                    <li><a href="#pricing">Precios</a></li>
-                    <li><a href="/login.html">Iniciar sesion</a></li>
+                <ul tabindex="0" class="menu dropdown-content mt-3 z-50 p-3 shadow-xl rounded-2xl w-56" style="background: rgba(20,20,24,0.95); border: 1px solid rgba(255,255,255,0.06); backdrop-filter: blur(20px);">
+                    <li><a href="#features" class="text-zinc-300">Funciones</a></li>
+                    <li><a href="#how" class="text-zinc-300">Como funciona</a></li>
+                    <li><a href="#pricing" class="text-zinc-300">Precios</a></li>
+                    <li><a href="#faq" class="text-zinc-300">FAQ</a></li>
+                    <li class="mt-2"><a href="/login.html" class="text-zinc-300">Entrar</a></li>
+                    <li><a href="/login.html?register=1" class="btn-glow rounded-xl text-center mt-1">Empezar gratis</a></li>
                 </ul>
             </div>
         </div>
-    </div>
+    </nav>
 
-    <!-- Hero -->
-    <section class="hero-bg min-h-screen flex items-center pt-20">
-        <div class="container mx-auto px-6 lg:px-12">
-            <div class="grid lg:grid-cols-2 gap-16 items-center">
-                <div class="fade-in">
-                    <div class="badge badge-outline border-vox-purple/30 text-vox-purple mb-6 px-4 py-3 text-sm">
-                        3,000 palabras gratis por semana
-                    </div>
-                    <h1 class="text-5xl lg:text-7xl font-black leading-[1.05] mb-6">
-                        No escribas,<br/><span class="gradient-text">solo habla.</span>
-                    </h1>
-                    <p class="text-xl text-gray-400 mb-8 max-w-lg leading-relaxed">
-                        Vox Easy convierte tu voz en texto pulido con IA. Dicta en cualquier app, en cualquier momento. 4x mas rapido que escribir.
-                    </p>
-                    <div class="flex flex-wrap gap-4">
-                        <a href="/login.html?register=1" class="btn btn-lg btn-gradient rounded-full px-8 font-bold text-base">
-                            Descargar para Mac
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-                        </a>
-                        <a href="#how-it-works" class="btn btn-lg btn-ghost rounded-full px-8 text-gray-300 border border-gray-700 hover:border-vox-purple">
-                            Ver como funciona
-                        </a>
-                    </div>
-                    <div class="flex items-center gap-6 mt-8 text-sm text-gray-500">
-                        <span class="flex items-center gap-2">
-                            <svg class="w-4 h-4 text-vox-green" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
-                            Mac Intel & Apple Silicon
-                        </span>
-                        <span class="flex items-center gap-2">
-                            <svg class="w-4 h-4 text-vox-green" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
-                            Sin instalacion compleja
-                        </span>
-                        <span class="flex items-center gap-2">
-                            <svg class="w-4 h-4 text-vox-green" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
-                            Gratis para empezar
-                        </span>
-                    </div>
+    <!-- ==================== HERO ==================== -->
+    <section class="hero-glow min-h-screen flex items-center pt-24 pb-16 lg:pt-32">
+        <div class="max-w-6xl mx-auto px-4 lg:px-8 w-full">
+            <div class="text-center max-w-3xl mx-auto">
+                <!-- Badge -->
+                <div class="reveal inline-flex items-center gap-2 px-4 py-2 rounded-full mb-8"
+                     style="background: rgba(162,155,254,0.08); border: 1px solid rgba(162,155,254,0.15);">
+                    <span class="w-2 h-2 rounded-full bg-vox-green pulse-dot"></span>
+                    <span class="text-sm text-zinc-300">3,000 palabras gratis cada semana</span>
                 </div>
-                <div class="fade-in hidden lg:block">
-                    <div class="glass rounded-3xl p-8 glow-purple">
-                        <div class="mockup-code bg-base-300/50 rounded-2xl">
-                            <pre data-prefix="$"><code>Cmd + Shift + V</code></pre>
-                            <pre data-prefix=">" class="text-vox-green"><code>Escuchando...</code></pre>
-                            <pre data-prefix=">" class="text-vox-purple"><code>Transcribiendo con IA...</code></pre>
-                            <pre data-prefix="" class="text-white"><code>"Hola equipo, les comparto el resumen</code></pre>
-                            <pre data-prefix="" class="text-white"><code> de la reunion de hoy..."</code></pre>
-                            <pre data-prefix="✓" class="text-vox-green"><code>Texto insertado automaticamente</code></pre>
+
+                <!-- Headline -->
+                <h1 class="reveal text-5xl sm:text-6xl lg:text-8xl font-black leading-[0.95] tracking-tight mb-6">
+                    Solo<br/><span class="gradient-text">habla.</span>
+                </h1>
+
+                <p class="reveal text-lg lg:text-xl text-zinc-400 max-w-xl mx-auto mb-10 leading-relaxed">
+                    Vox Easy transforma tu voz en texto pulido con IA. Dicta en cualquier app, a cualquier hora.
+                    <span class="text-zinc-200 font-medium">4x mas rapido que escribir.</span>
+                </p>
+
+                <!-- CTAs -->
+                <div class="reveal flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
+                    <a href="/login.html?register=1" class="btn btn-lg btn-glow rounded-2xl px-8 text-base gap-2 w-full sm:w-auto">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                        Descargar para Mac
+                    </a>
+                    <a href="#how" class="btn btn-lg rounded-2xl px-8 text-base w-full sm:w-auto bg-transparent border border-zinc-800 text-zinc-300 hover:border-zinc-600 hover:bg-white/[0.02]">
+                        Ver como funciona
+                    </a>
+                </div>
+
+                <!-- Platform badges -->
+                <div class="reveal flex items-center justify-center gap-6 text-xs text-zinc-500">
+                    <span class="flex items-center gap-1.5">
+                        <svg class="w-3.5 h-3.5 text-vox-green" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                        Intel & Apple Silicon
+                    </span>
+                    <span class="flex items-center gap-1.5">
+                        <svg class="w-3.5 h-3.5 text-vox-green" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                        Sin config
+                    </span>
+                    <span class="flex items-center gap-1.5">
+                        <svg class="w-3.5 h-3.5 text-vox-green" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                        Gratis
+                    </span>
+                </div>
+            </div>
+
+            <!-- Terminal Demo -->
+            <div class="reveal max-w-2xl mx-auto mt-16">
+                <div class="glass-card rounded-3xl p-1 glow-md float">
+                    <div class="rounded-[22px] overflow-hidden" style="background: rgba(12,12,16,0.9);">
+                        <div class="flex items-center gap-2 px-5 py-3 border-b border-white/5">
+                            <span class="w-3 h-3 rounded-full bg-red-500/60"></span>
+                            <span class="w-3 h-3 rounded-full bg-yellow-500/60"></span>
+                            <span class="w-3 h-3 rounded-full bg-green-500/60"></span>
+                            <span class="text-xs text-zinc-500 ml-3 font-mono">vox-easy</span>
+                        </div>
+                        <div class="p-6 font-mono text-sm space-y-3">
+                            <div class="flex items-center gap-2"><span class="text-zinc-500">$</span> <span class="text-zinc-200">Cmd + Shift + V</span></div>
+                            <div class="flex items-center gap-2"><span class="text-vox-green">&#9679;</span> <span class="text-vox-green">Escuchando tu voz...</span></div>
+                            <div class="flex items-center gap-2"><span class="text-vox-purple">&#9679;</span> <span class="text-vox-purple">Transcribiendo con Whisper AI...</span></div>
+                            <div class="mt-4 p-4 rounded-xl" style="background: rgba(162,155,254,0.06); border: 1px solid rgba(162,155,254,0.1);">
+                                <span class="text-zinc-300">"Hola equipo, les comparto el resumen de la reunion de hoy. Los puntos principales fueron la revision del roadmap Q2 y las metricas de conversion."</span>
+                            </div>
+                            <div class="flex items-center gap-2"><span class="text-vox-green">&#10003;</span> <span class="text-vox-green text-xs">Texto insertado en Gmail &middot; 28 palabras &middot; 2.1s</span></div>
                         </div>
                     </div>
                 </div>
@@ -126,409 +237,464 @@
         </div>
     </section>
 
-    <!-- Logos / Social Proof -->
-    <section class="py-16 border-y border-white/5">
-        <div class="container mx-auto px-6 text-center">
-            <p class="text-gray-500 text-sm mb-8 uppercase tracking-widest">Funciona con tus apps favoritas</p>
-            <div class="overflow-hidden">
-                <div class="flex gap-12 items-center justify-center flex-wrap text-gray-500 text-lg font-semibold">
-                    <span>Slack</span>
-                    <span class="text-gray-700">|</span>
-                    <span>Gmail</span>
-                    <span class="text-gray-700">|</span>
-                    <span>VS Code</span>
-                    <span class="text-gray-700">|</span>
-                    <span>Notion</span>
-                    <span class="text-gray-700">|</span>
-                    <span>WhatsApp</span>
-                    <span class="text-gray-700">|</span>
-                    <span>Terminal</span>
-                    <span class="text-gray-700">|</span>
-                    <span>Figma</span>
-                    <span class="text-gray-700">|</span>
-                    <span>ChatGPT</span>
-                    <span class="text-gray-700">|</span>
-                    <span>Linear</span>
+    <!-- ==================== COMPATIBLE APPS ==================== -->
+    <div class="section-divider"></div>
+    <section class="py-16 lg:py-20">
+        <div class="max-w-6xl mx-auto px-4 lg:px-8">
+            <p class="text-center text-zinc-600 text-xs uppercase tracking-[0.2em] mb-10">Dicta en cualquier app de tu Mac</p>
+            <div class="reveal flex flex-wrap items-center justify-center gap-4 lg:gap-5">
+                <div class="app-icon" title="Slack">&#x1f4ac;</div>
+                <div class="app-icon" title="Gmail">&#x2709;</div>
+                <div class="app-icon" title="VS Code">&#x1f4bb;</div>
+                <div class="app-icon" title="Notion">&#x1f4dd;</div>
+                <div class="app-icon" title="WhatsApp">&#x1f4f1;</div>
+                <div class="app-icon" title="Terminal">&#x1f5a5;</div>
+                <div class="app-icon" title="Figma">&#x1f3a8;</div>
+                <div class="app-icon" title="ChatGPT">&#x1f916;</div>
+                <div class="app-icon" title="Linear">&#x1f4ca;</div>
+                <div class="app-icon" title="Docs">&#x1f4c4;</div>
+                <div class="app-icon" title="Twitter/X">&#x1f426;</div>
+                <div class="app-icon" title="Discord">&#x1f3ae;</div>
+            </div>
+        </div>
+    </section>
+    <div class="section-divider"></div>
+
+    <!-- ==================== STATS ==================== -->
+    <section class="py-20 lg:py-28">
+        <div class="max-w-5xl mx-auto px-4 lg:px-8">
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
+                <div class="reveal text-center">
+                    <div class="text-4xl lg:text-6xl font-black gradient-text stat-number mb-2">4x</div>
+                    <p class="text-zinc-500 text-sm">Mas rapido<br/>que escribir</p>
+                </div>
+                <div class="reveal reveal-delay-1 text-center">
+                    <div class="text-4xl lg:text-6xl font-black gradient-text stat-number mb-2">220</div>
+                    <p class="text-zinc-500 text-sm">Palabras<br/>por minuto</p>
+                </div>
+                <div class="reveal reveal-delay-2 text-center">
+                    <div class="text-4xl lg:text-6xl font-black gradient-text stat-number mb-2">99%</div>
+                    <p class="text-zinc-500 text-sm">Precision<br/>Whisper AI</p>
+                </div>
+                <div class="reveal reveal-delay-3 text-center">
+                    <div class="text-4xl lg:text-6xl font-black gradient-text stat-number mb-2">90+</div>
+                    <p class="text-zinc-500 text-sm">Idiomas<br/>soportados</p>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Features -->
-    <section id="features" class="py-24">
-        <div class="container mx-auto px-6 lg:px-12">
-            <div class="text-center mb-16 fade-in">
-                <h2 class="text-4xl lg:text-5xl font-black mb-4">Velocidad universal. <span class="gradient-text">Privacidad total.</span></h2>
-                <p class="text-gray-400 text-lg max-w-2xl mx-auto">Disenado para profesionales que valoran su tiempo y sus datos.</p>
+    <!-- ==================== FEATURES ==================== -->
+    <section id="features" class="section-glow py-24 lg:py-32">
+        <div class="max-w-6xl mx-auto px-4 lg:px-8">
+            <div class="text-center max-w-2xl mx-auto mb-16">
+                <p class="reveal text-vox-purple text-sm font-semibold uppercase tracking-widest mb-4">Funciones</p>
+                <h2 class="reveal text-3xl lg:text-5xl font-black leading-tight mb-5">
+                    Disenado para quienes<br/><span class="gradient-text">valoran su tiempo.</span>
+                </h2>
+                <p class="reveal text-zinc-400 text-lg">Todo lo que necesitas para dejar de escribir y empezar a dictar.</p>
             </div>
-            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <!-- Feature 1 -->
-                <div class="glass rounded-2xl p-8 hover:border-vox-purple/50 transition-all duration-300 fade-in">
-                    <div class="feature-icon w-14 h-14 rounded-xl flex items-center justify-center mb-5">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-vox-purple" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+                <div class="reveal glass-card rounded-2xl p-7">
+                    <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-5" style="background: linear-gradient(135deg, rgba(162,155,254,0.12), rgba(85,230,193,0.08));">
+                        <svg class="w-6 h-6 text-vox-purple" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                     </div>
-                    <h3 class="text-xl font-bold mb-3">4x mas rapido</h3>
-                    <p class="text-gray-400 leading-relaxed">Dicta a 220 palabras por minuto vs 45 escribiendo. Termina en minutos lo que antes tomaba horas.</p>
+                    <h3 class="font-bold text-lg text-white mb-2">Velocidad extrema</h3>
+                    <p class="text-zinc-400 text-sm leading-relaxed">220 palabras por minuto vs 45 escribiendo. Emails, mensajes y documentos en una fraccion del tiempo.</p>
                 </div>
-                <!-- Feature 2 -->
-                <div class="glass rounded-2xl p-8 hover:border-vox-purple/50 transition-all duration-300 fade-in">
-                    <div class="feature-icon w-14 h-14 rounded-xl flex items-center justify-center mb-5">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-vox-green" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064" /></svg>
+
+                <div class="reveal reveal-delay-1 glass-card rounded-2xl p-7">
+                    <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-5" style="background: linear-gradient(135deg, rgba(85,230,193,0.12), rgba(162,155,254,0.08));">
+                        <svg class="w-6 h-6 text-vox-green" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064"/></svg>
                     </div>
-                    <h3 class="text-xl font-bold mb-3">Hotkey global</h3>
-                    <p class="text-gray-400 leading-relaxed">Presiona Cmd+Shift+V en cualquier app. Slack, Gmail, Terminal, WhatsApp. Funciona en todas partes.</p>
+                    <h3 class="font-bold text-lg text-white mb-2">Hotkey universal</h3>
+                    <p class="text-zinc-400 text-sm leading-relaxed">Un solo atajo: Cmd+Shift+V. Funciona en Slack, Gmail, Terminal, Notion y cualquier otra app.</p>
                 </div>
-                <!-- Feature 3 -->
-                <div class="glass rounded-2xl p-8 hover:border-vox-purple/50 transition-all duration-300 fade-in">
-                    <div class="feature-icon w-14 h-14 rounded-xl flex items-center justify-center mb-5">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-vox-purple" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+
+                <div class="reveal reveal-delay-2 glass-card rounded-2xl p-7">
+                    <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-5" style="background: linear-gradient(135deg, rgba(162,155,254,0.12), rgba(85,230,193,0.08));">
+                        <svg class="w-6 h-6 text-vox-purple" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
                     </div>
-                    <h3 class="text-xl font-bold mb-3">IA en la nube</h3>
-                    <p class="text-gray-400 leading-relaxed">Procesamiento con Whisper AI en nuestros servidores. Sin descargas pesadas, sin consumir tu CPU.</p>
+                    <h3 class="font-bold text-lg text-white mb-2">IA en la nube</h3>
+                    <p class="text-zinc-400 text-sm leading-relaxed">Whisper AI transcribe en nuestros servidores. Sin modelos pesados, sin consumir tu CPU ni RAM.</p>
                 </div>
-                <!-- Feature 4 -->
-                <div class="glass rounded-2xl p-8 hover:border-vox-purple/50 transition-all duration-300 fade-in">
-                    <div class="feature-icon w-14 h-14 rounded-xl flex items-center justify-center mb-5">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-vox-green" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+
+                <div class="reveal glass-card rounded-2xl p-7">
+                    <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-5" style="background: linear-gradient(135deg, rgba(85,230,193,0.12), rgba(162,155,254,0.08));">
+                        <svg class="w-6 h-6 text-vox-green" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
                     </div>
-                    <h3 class="text-xl font-bold mb-3">Auto-escritura</h3>
-                    <p class="text-gray-400 leading-relaxed">El texto se escribe automaticamente donde tengas el cursor. Sin copiar, sin pegar. Magia pura.</p>
+                    <h3 class="font-bold text-lg text-white mb-2">Auto-escritura</h3>
+                    <p class="text-zinc-400 text-sm leading-relaxed">El texto aparece donde esta tu cursor. Automatico. Sin copiar, sin pegar, sin interrupciones.</p>
                 </div>
-                <!-- Feature 5 -->
-                <div class="glass rounded-2xl p-8 hover:border-vox-purple/50 transition-all duration-300 fade-in">
-                    <div class="feature-icon w-14 h-14 rounded-xl flex items-center justify-center mb-5">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-vox-purple" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" /></svg>
+
+                <div class="reveal reveal-delay-1 glass-card rounded-2xl p-7">
+                    <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-5" style="background: linear-gradient(135deg, rgba(162,155,254,0.12), rgba(85,230,193,0.08));">
+                        <svg class="w-6 h-6 text-vox-purple" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"/></svg>
                     </div>
-                    <h3 class="text-xl font-bold mb-3">Multi-idioma</h3>
-                    <p class="text-gray-400 leading-relaxed">Soporte para espanol, ingles, frances, portugues y 90+ idiomas con deteccion automatica.</p>
+                    <h3 class="font-bold text-lg text-white mb-2">90+ idiomas</h3>
+                    <p class="text-zinc-400 text-sm leading-relaxed">Espanol, ingles, frances, portugues y mas. Deteccion automatica del idioma que estas hablando.</p>
                 </div>
-                <!-- Feature 6 -->
-                <div class="glass rounded-2xl p-8 hover:border-vox-purple/50 transition-all duration-300 fade-in">
-                    <div class="feature-icon w-14 h-14 rounded-xl flex items-center justify-center mb-5">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-vox-green" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
+
+                <div class="reveal reveal-delay-2 glass-card rounded-2xl p-7">
+                    <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-5" style="background: linear-gradient(135deg, rgba(85,230,193,0.12), rgba(162,155,254,0.08));">
+                        <svg class="w-6 h-6 text-vox-green" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
                     </div>
-                    <h3 class="text-xl font-bold mb-3">Ultra ligera</h3>
-                    <p class="text-gray-400 leading-relaxed">App de solo 73MB. Se instala en segundos, corre en segundo plano y no consume recursos.</p>
+                    <h3 class="font-bold text-lg text-white mb-2">73MB totales</h3>
+                    <p class="text-zinc-400 text-sm leading-relaxed">Instala en segundos. Corre en segundo plano sin que lo notes. Cero bloatware.</p>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- How it works -->
-    <section id="how-it-works" class="py-24 hero-bg">
-        <div class="container mx-auto px-6 lg:px-12">
-            <div class="text-center mb-16 fade-in">
-                <h2 class="text-4xl lg:text-5xl font-black mb-4">Asi de <span class="gradient-text">simple.</span></h2>
-                <p class="text-gray-400 text-lg">Tres pasos. Cero complicaciones.</p>
+    <!-- ==================== HOW IT WORKS ==================== -->
+    <section id="how" class="py-24 lg:py-32">
+        <div class="max-w-6xl mx-auto px-4 lg:px-8">
+            <div class="text-center max-w-2xl mx-auto mb-16">
+                <p class="reveal text-vox-green text-sm font-semibold uppercase tracking-widest mb-4">Como funciona</p>
+                <h2 class="reveal text-3xl lg:text-5xl font-black leading-tight">
+                    Tres pasos. <span class="gradient-text">Cero friccion.</span>
+                </h2>
             </div>
+
             <div class="grid md:grid-cols-3 gap-8">
-                <div class="text-center fade-in">
-                    <div class="w-20 h-20 rounded-full feature-icon flex items-center justify-center mx-auto mb-6 text-3xl font-black gradient-text">1</div>
-                    <h3 class="text-xl font-bold mb-3">Descarga e instala</h3>
-                    <p class="text-gray-400">Descarga el .dmg, arrastra a Aplicaciones. Listo en 30 segundos.</p>
+                <div class="reveal text-center">
+                    <div class="w-16 h-16 rounded-2xl mx-auto mb-6 flex items-center justify-center text-2xl font-black gradient-text glow-sm"
+                         style="background: rgba(162,155,254,0.06); border: 1px solid rgba(162,155,254,0.1);">1</div>
+                    <h3 class="font-bold text-lg text-white mb-3">Instala la app</h3>
+                    <p class="text-zinc-400 text-sm leading-relaxed">Descarga el .dmg, arrastra a Aplicaciones. 30 segundos y estas listo.</p>
                 </div>
-                <div class="text-center fade-in">
-                    <div class="w-20 h-20 rounded-full feature-icon flex items-center justify-center mx-auto mb-6 text-3xl font-black gradient-text">2</div>
-                    <h3 class="text-xl font-bold mb-3">Presiona el hotkey</h3>
-                    <p class="text-gray-400">Cmd+Shift+V desde cualquier app. Vox empieza a escuchar al instante.</p>
+                <div class="reveal reveal-delay-1 text-center">
+                    <div class="w-16 h-16 rounded-2xl mx-auto mb-6 flex items-center justify-center text-2xl font-black gradient-text glow-sm"
+                         style="background: rgba(162,155,254,0.06); border: 1px solid rgba(162,155,254,0.1);">2</div>
+                    <h3 class="font-bold text-lg text-white mb-3">Presiona el hotkey</h3>
+                    <p class="text-zinc-400 text-sm leading-relaxed">Cmd+Shift+V desde cualquier app. Vox aparece y empieza a escuchar.</p>
                 </div>
-                <div class="text-center fade-in">
-                    <div class="w-20 h-20 rounded-full feature-icon flex items-center justify-center mx-auto mb-6 text-3xl font-black gradient-text">3</div>
-                    <h3 class="text-xl font-bold mb-3">Habla y listo</h3>
-                    <p class="text-gray-400">Tu voz se convierte en texto y se escribe automaticamente. Asi de facil.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Stats -->
-    <section class="py-20 border-y border-white/5">
-        <div class="container mx-auto px-6">
-            <div class="grid grid-cols-2 lg:grid-cols-4 gap-8">
-                <div class="text-center fade-in">
-                    <div class="text-4xl lg:text-5xl font-black gradient-text mb-2">4x</div>
-                    <p class="text-gray-400">Mas rapido que escribir</p>
-                </div>
-                <div class="text-center fade-in">
-                    <div class="text-4xl lg:text-5xl font-black gradient-text mb-2">220</div>
-                    <p class="text-gray-400">Palabras por minuto</p>
-                </div>
-                <div class="text-center fade-in">
-                    <div class="text-4xl lg:text-5xl font-black gradient-text mb-2">90+</div>
-                    <p class="text-gray-400">Idiomas soportados</p>
-                </div>
-                <div class="text-center fade-in">
-                    <div class="text-4xl lg:text-5xl font-black gradient-text mb-2">73MB</div>
-                    <p class="text-gray-400">Peso de la app</p>
+                <div class="reveal reveal-delay-2 text-center">
+                    <div class="w-16 h-16 rounded-2xl mx-auto mb-6 flex items-center justify-center text-2xl font-black gradient-text glow-sm"
+                         style="background: rgba(162,155,254,0.06); border: 1px solid rgba(162,155,254,0.1);">3</div>
+                    <h3 class="font-bold text-lg text-white mb-3">Habla y listo</h3>
+                    <p class="text-zinc-400 text-sm leading-relaxed">Tu voz se convierte en texto y se escribe donde esta el cursor. Magia.</p>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Use Cases -->
-    <section class="py-24">
-        <div class="container mx-auto px-6 lg:px-12">
-            <div class="text-center mb-16 fade-in">
-                <h2 class="text-4xl lg:text-5xl font-black mb-4">Para <span class="gradient-text">todos.</span></h2>
-                <p class="text-gray-400 text-lg max-w-2xl mx-auto">Profesionales, estudiantes, creadores. Vox se adapta a tu flujo de trabajo.</p>
+    <!-- ==================== USE CASES ==================== -->
+    <div class="section-divider"></div>
+    <section class="section-glow py-24 lg:py-32">
+        <div class="max-w-6xl mx-auto px-4 lg:px-8">
+            <div class="text-center max-w-2xl mx-auto mb-16">
+                <p class="reveal text-vox-purple text-sm font-semibold uppercase tracking-widest mb-4">Hecho para ti</p>
+                <h2 class="reveal text-3xl lg:text-5xl font-black leading-tight">
+                    Para cada tipo de <span class="gradient-text">profesional.</span>
+                </h2>
             </div>
-            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div class="glass rounded-2xl p-6 text-center hover:border-vox-purple/50 transition fade-in">
-                    <div class="text-3xl mb-3">&#x1f4bb;</div>
-                    <h3 class="font-bold mb-2">Desarrolladores</h3>
-                    <p class="text-gray-400 text-sm">Dicta comentarios, commits y documentacion sin dejar el teclado.</p>
+
+            <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                <div class="reveal glass-card rounded-2xl p-6 text-center">
+                    <div class="text-3xl mb-4">&#x1f4bb;</div>
+                    <h3 class="font-bold text-white mb-2">Developers</h3>
+                    <p class="text-zinc-500 text-xs leading-relaxed">Dicta commits, documentacion y code reviews sin tocar el teclado.</p>
                 </div>
-                <div class="glass rounded-2xl p-6 text-center hover:border-vox-purple/50 transition fade-in">
-                    <div class="text-3xl mb-3">&#x1f4e7;</div>
-                    <h3 class="font-bold mb-2">Ventas</h3>
-                    <p class="text-gray-400 text-sm">Responde emails y mensajes 4x mas rapido. Cierra mas deals.</p>
+                <div class="reveal reveal-delay-1 glass-card rounded-2xl p-6 text-center">
+                    <div class="text-3xl mb-4">&#x1f4e7;</div>
+                    <h3 class="font-bold text-white mb-2">Ventas & CS</h3>
+                    <p class="text-zinc-500 text-xs leading-relaxed">Responde tickets y emails 4x mas rapido. Cierra mas deals.</p>
                 </div>
-                <div class="glass rounded-2xl p-6 text-center hover:border-vox-purple/50 transition fade-in">
-                    <div class="text-3xl mb-3">&#x1f393;</div>
-                    <h3 class="font-bold mb-2">Estudiantes</h3>
-                    <p class="text-gray-400 text-sm">Toma notas de clase dictando. Escribe ensayos mientras caminas.</p>
+                <div class="reveal reveal-delay-2 glass-card rounded-2xl p-6 text-center">
+                    <div class="text-3xl mb-4">&#x1f393;</div>
+                    <h3 class="font-bold text-white mb-2">Estudiantes</h3>
+                    <p class="text-zinc-500 text-xs leading-relaxed">Apuntes de clase, ensayos y trabajos dictando mientras caminas.</p>
                 </div>
-                <div class="glass rounded-2xl p-6 text-center hover:border-vox-purple/50 transition fade-in">
-                    <div class="text-3xl mb-3">&#x1f3a8;</div>
-                    <h3 class="font-bold mb-2">Creadores</h3>
-                    <p class="text-gray-400 text-sm">Guiones, posts, descripciones. Crea contenido a la velocidad del pensamiento.</p>
+                <div class="reveal reveal-delay-3 glass-card rounded-2xl p-6 text-center">
+                    <div class="text-3xl mb-4">&#x1f3a8;</div>
+                    <h3 class="font-bold text-white mb-2">Creadores</h3>
+                    <p class="text-zinc-500 text-xs leading-relaxed">Guiones, posts y contenido a la velocidad del pensamiento.</p>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Pricing -->
-    <section id="pricing" class="py-24 hero-bg">
-        <div class="container mx-auto px-6 lg:px-12">
-            <div class="text-center mb-16 fade-in">
-                <h2 class="text-4xl lg:text-5xl font-black mb-4">Precios <span class="gradient-text">simples.</span></h2>
-                <p class="text-gray-400 text-lg">Empieza gratis. Actualiza cuando quieras.</p>
+    <!-- ==================== PRICING ==================== -->
+    <section id="pricing" class="py-24 lg:py-32">
+        <div class="max-w-5xl mx-auto px-4 lg:px-8">
+            <div class="text-center max-w-2xl mx-auto mb-16">
+                <p class="reveal text-vox-green text-sm font-semibold uppercase tracking-widest mb-4">Precios</p>
+                <h2 class="reveal text-3xl lg:text-5xl font-black leading-tight mb-5">
+                    Simple y <span class="gradient-text">transparente.</span>
+                </h2>
+                <p class="reveal text-zinc-400 text-lg">Empieza gratis. Sin tarjeta de credito.</p>
             </div>
-            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-5xl mx-auto">
+
+            <div class="grid md:grid-cols-3 gap-5 lg:gap-6">
                 <!-- Free -->
-                <div class="glass rounded-3xl p-8 flex flex-col fade-in">
-                    <h3 class="text-xl font-bold mb-2">Free</h3>
-                    <p class="text-gray-400 text-sm mb-6">Perfecto para probar Vox</p>
-                    <div class="mb-8">
-                        <span class="text-5xl font-black">$0</span>
-                        <span class="text-gray-400">/siempre</span>
+                <div class="reveal glass-card rounded-3xl p-7 flex flex-col">
+                    <div class="mb-6">
+                        <h3 class="text-lg font-bold text-white mb-1">Free</h3>
+                        <p class="text-zinc-500 text-sm">Para probar Vox Easy</p>
                     </div>
-                    <ul class="space-y-3 mb-8 flex-1">
-                        <li class="flex items-center gap-3 text-gray-300">
-                            <svg class="w-5 h-5 text-vox-green flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                    <div class="mb-8">
+                        <span class="text-5xl font-black text-white">$0</span>
+                        <span class="text-zinc-500 text-sm ml-1">/siempre</span>
+                    </div>
+                    <ul class="space-y-3 mb-8 flex-1 text-sm">
+                        <li class="flex items-center gap-3 text-zinc-300">
+                            <svg class="w-4 h-4 text-vox-green flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
                             3,000 palabras/semana
                         </li>
-                        <li class="flex items-center gap-3 text-gray-300">
-                            <svg class="w-5 h-5 text-vox-green flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                        <li class="flex items-center gap-3 text-zinc-300">
+                            <svg class="w-4 h-4 text-vox-green flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
                             Hotkey global
                         </li>
-                        <li class="flex items-center gap-3 text-gray-300">
-                            <svg class="w-5 h-5 text-vox-green flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                        <li class="flex items-center gap-3 text-zinc-300">
+                            <svg class="w-4 h-4 text-vox-green flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
                             Auto-escritura
                         </li>
-                        <li class="flex items-center gap-3 text-gray-300">
-                            <svg class="w-5 h-5 text-vox-green flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                        <li class="flex items-center gap-3 text-zinc-300">
+                            <svg class="w-4 h-4 text-vox-green flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
                             Multi-idioma
                         </li>
                     </ul>
-                    <a href="/login.html?register=1" class="btn btn-outline rounded-full w-full">Empezar gratis</a>
+                    <a href="/login.html?register=1" class="btn btn-outline rounded-2xl w-full border-zinc-800 text-zinc-300 hover:border-zinc-600 hover:bg-white/[0.02]">Empezar gratis</a>
                 </div>
+
                 <!-- Pro -->
-                <div class="glass rounded-3xl p-8 flex flex-col pricing-popular glow-purple relative fade-in">
-                    <div class="badge badge-sm bg-vox-purple text-black font-bold absolute -top-3 left-1/2 -translate-x-1/2 px-4">MAS POPULAR</div>
-                    <h3 class="text-xl font-bold mb-2">Pro</h3>
-                    <p class="text-gray-400 text-sm mb-6">Para profesionales y power users</p>
-                    <div class="mb-8">
-                        <span class="text-5xl font-black">$9</span>
-                        <span class="text-gray-400">/mes</span>
+                <div class="reveal reveal-delay-1 glass-card rounded-3xl p-7 flex flex-col glow-ring relative">
+                    <div class="absolute -top-3 left-1/2 -translate-x-1/2">
+                        <span class="px-4 py-1 rounded-full text-xs font-bold text-black" style="background: linear-gradient(135deg, #a29bfe, #55e6c1);">RECOMENDADO</span>
                     </div>
-                    <ul class="space-y-3 mb-8 flex-1">
-                        <li class="flex items-center gap-3 text-gray-300">
-                            <svg class="w-5 h-5 text-vox-green flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
-                            <strong>Palabras ilimitadas</strong>
+                    <div class="mb-6">
+                        <h3 class="text-lg font-bold text-white mb-1">Pro</h3>
+                        <p class="text-zinc-500 text-sm">Para profesionales</p>
+                    </div>
+                    <div class="mb-8">
+                        <span class="text-5xl font-black text-white">$9</span>
+                        <span class="text-zinc-500 text-sm ml-1">/mes</span>
+                    </div>
+                    <ul class="space-y-3 mb-8 flex-1 text-sm">
+                        <li class="flex items-center gap-3 text-zinc-200 font-medium">
+                            <svg class="w-4 h-4 text-vox-green flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                            Palabras ilimitadas
                         </li>
-                        <li class="flex items-center gap-3 text-gray-300">
-                            <svg class="w-5 h-5 text-vox-green flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                        <li class="flex items-center gap-3 text-zinc-300">
+                            <svg class="w-4 h-4 text-vox-green flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
                             Transcripcion prioritaria
                         </li>
-                        <li class="flex items-center gap-3 text-gray-300">
-                            <svg class="w-5 h-5 text-vox-green flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                        <li class="flex items-center gap-3 text-zinc-300">
+                            <svg class="w-4 h-4 text-vox-green flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
                             Todos los idiomas
                         </li>
-                        <li class="flex items-center gap-3 text-gray-300">
-                            <svg class="w-5 h-5 text-vox-green flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                        <li class="flex items-center gap-3 text-zinc-300">
+                            <svg class="w-4 h-4 text-vox-green flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
                             Soporte prioritario
                         </li>
-                        <li class="flex items-center gap-3 text-gray-300">
-                            <svg class="w-5 h-5 text-vox-green flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
-                            Updates anticipados
+                        <li class="flex items-center gap-3 text-zinc-300">
+                            <svg class="w-4 h-4 text-vox-green flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                            Early access a features
                         </li>
                     </ul>
-                    <a href="/login.html?register=1&plan=pro" class="btn btn-gradient rounded-full w-full font-bold">Obtener Pro</a>
+                    <a href="/login.html?register=1&plan=pro" class="btn btn-glow rounded-2xl w-full text-base">Obtener Pro</a>
                 </div>
+
                 <!-- Team -->
-                <div class="glass rounded-3xl p-8 flex flex-col fade-in">
-                    <h3 class="text-xl font-bold mb-2">Team</h3>
-                    <p class="text-gray-400 text-sm mb-6">Para equipos y empresas</p>
-                    <div class="mb-8">
-                        <span class="text-5xl font-black">$7</span>
-                        <span class="text-gray-400">/usuario/mes</span>
+                <div class="reveal reveal-delay-2 glass-card rounded-3xl p-7 flex flex-col">
+                    <div class="mb-6">
+                        <h3 class="text-lg font-bold text-white mb-1">Team</h3>
+                        <p class="text-zinc-500 text-sm">Para equipos</p>
                     </div>
-                    <ul class="space-y-3 mb-8 flex-1">
-                        <li class="flex items-center gap-3 text-gray-300">
-                            <svg class="w-5 h-5 text-vox-green flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
-                            Todo lo de Pro
+                    <div class="mb-8">
+                        <span class="text-5xl font-black text-white">$7</span>
+                        <span class="text-zinc-500 text-sm ml-1">/user/mes</span>
+                    </div>
+                    <ul class="space-y-3 mb-8 flex-1 text-sm">
+                        <li class="flex items-center gap-3 text-zinc-300">
+                            <svg class="w-4 h-4 text-vox-green flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                            Todo de Pro
                         </li>
-                        <li class="flex items-center gap-3 text-gray-300">
-                            <svg class="w-5 h-5 text-vox-green flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
-                            Panel de administracion
+                        <li class="flex items-center gap-3 text-zinc-300">
+                            <svg class="w-4 h-4 text-vox-green flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                            Panel de admin
                         </li>
-                        <li class="flex items-center gap-3 text-gray-300">
-                            <svg class="w-5 h-5 text-vox-green flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                        <li class="flex items-center gap-3 text-zinc-300">
+                            <svg class="w-4 h-4 text-vox-green flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
                             Facturacion centralizada
                         </li>
-                        <li class="flex items-center gap-3 text-gray-300">
-                            <svg class="w-5 h-5 text-vox-green flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                        <li class="flex items-center gap-3 text-zinc-300">
+                            <svg class="w-4 h-4 text-vox-green flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
                             Soporte dedicado
                         </li>
                     </ul>
-                    <a href="mailto:team@voxeasy.com" class="btn btn-outline rounded-full w-full">Contactar ventas</a>
+                    <a href="mailto:team@voxeasy.com" class="btn btn-outline rounded-2xl w-full border-zinc-800 text-zinc-300 hover:border-zinc-600 hover:bg-white/[0.02]">Contactar ventas</a>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Testimonials -->
-    <section class="py-24">
-        <div class="container mx-auto px-6 lg:px-12">
-            <div class="text-center mb-16 fade-in">
-                <h2 class="text-4xl lg:text-5xl font-black mb-4">Lo que dicen <span class="gradient-text">nuestros usuarios.</span></h2>
+    <!-- ==================== TESTIMONIALS ==================== -->
+    <div class="section-divider"></div>
+    <section class="section-glow py-24 lg:py-32">
+        <div class="max-w-6xl mx-auto px-4 lg:px-8">
+            <div class="text-center max-w-2xl mx-auto mb-16">
+                <p class="reveal text-vox-purple text-sm font-semibold uppercase tracking-widest mb-4">Testimonios</p>
+                <h2 class="reveal text-3xl lg:text-5xl font-black leading-tight">
+                    Lo que opinan quienes <span class="gradient-text">ya lo usan.</span>
+                </h2>
             </div>
-            <div class="grid md:grid-cols-3 gap-6">
-                <div class="glass rounded-2xl p-8 fade-in">
-                    <div class="flex gap-1 mb-4 text-yellow-400">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
-                    <p class="text-gray-300 mb-6 leading-relaxed">"Antes tardaba 20 minutos en un email largo. Ahora lo dicto en 3 minutos. Vox cambio completamente mi productividad."</p>
-                    <div class="flex items-center gap-3">
-                        <div class="avatar placeholder"><div class="bg-vox-purple/20 text-vox-purple rounded-full w-10"><span class="text-sm">MR</span></div></div>
-                        <div><p class="font-semibold text-sm">Maria Rodriguez</p><p class="text-gray-500 text-xs">Product Manager</p></div>
+
+            <div class="grid md:grid-cols-3 gap-5">
+                <div class="reveal glass-card rounded-2xl p-7">
+                    <div class="flex gap-0.5 mb-5 text-yellow-400 text-sm">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+                    <p class="text-zinc-300 text-sm leading-relaxed mb-6">"Antes tardaba 20 minutos en un email largo. Ahora lo dicto en 3. Vox cambio mi productividad completamente."</p>
+                    <div class="flex items-center gap-3 pt-5 border-t border-white/5">
+                        <div class="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold" style="background: rgba(162,155,254,0.15); color: #a29bfe;">MR</div>
+                        <div><p class="text-sm font-semibold text-white">Maria Rodriguez</p><p class="text-xs text-zinc-500">Product Manager</p></div>
                     </div>
                 </div>
-                <div class="glass rounded-2xl p-8 fade-in">
-                    <div class="flex gap-1 mb-4 text-yellow-400">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
-                    <p class="text-gray-300 mb-6 leading-relaxed">"Como developer, uso Vox para dictar comentarios y documentacion mientras codigo. Es como tener un asistente invisible."</p>
-                    <div class="flex items-center gap-3">
-                        <div class="avatar placeholder"><div class="bg-vox-green/20 text-vox-green rounded-full w-10"><span class="text-sm">CL</span></div></div>
-                        <div><p class="font-semibold text-sm">Carlos Lopez</p><p class="text-gray-500 text-xs">Senior Developer</p></div>
+                <div class="reveal reveal-delay-1 glass-card rounded-2xl p-7">
+                    <div class="flex gap-0.5 mb-5 text-yellow-400 text-sm">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+                    <p class="text-zinc-300 text-sm leading-relaxed mb-6">"Como developer, dicto commits y docs mientras codifico. Es como tener un asistente que escribe por ti."</p>
+                    <div class="flex items-center gap-3 pt-5 border-t border-white/5">
+                        <div class="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold" style="background: rgba(85,230,193,0.15); color: #55e6c1;">CL</div>
+                        <div><p class="text-sm font-semibold text-white">Carlos Lopez</p><p class="text-xs text-zinc-500">Senior Developer</p></div>
                     </div>
                 </div>
-                <div class="glass rounded-2xl p-8 fade-in">
-                    <div class="flex gap-1 mb-4 text-yellow-400">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
-                    <p class="text-gray-300 mb-6 leading-relaxed">"Tengo problemas de tunel carpiano y Vox me salvo. Puedo seguir trabajando sin dolor. Vale cada centavo del Pro."</p>
-                    <div class="flex items-center gap-3">
-                        <div class="avatar placeholder"><div class="bg-vox-purple/20 text-vox-purple rounded-full w-10"><span class="text-sm">AG</span></div></div>
-                        <div><p class="font-semibold text-sm">Ana Garcia</p><p class="text-gray-500 text-xs">Content Writer</p></div>
+                <div class="reveal reveal-delay-2 glass-card rounded-2xl p-7">
+                    <div class="flex gap-0.5 mb-5 text-yellow-400 text-sm">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+                    <p class="text-zinc-300 text-sm leading-relaxed mb-6">"Tengo problemas de tunel carpiano y Vox me salvo. Puedo seguir trabajando sin dolor. Vale cada centavo."</p>
+                    <div class="flex items-center gap-3 pt-5 border-t border-white/5">
+                        <div class="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold" style="background: rgba(162,155,254,0.15); color: #a29bfe;">AG</div>
+                        <div><p class="text-sm font-semibold text-white">Ana Garcia</p><p class="text-xs text-zinc-500">Content Writer</p></div>
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- FAQ -->
-    <section id="faq" class="py-24 hero-bg">
-        <div class="container mx-auto px-6 lg:px-12 max-w-3xl">
-            <div class="text-center mb-16 fade-in">
-                <h2 class="text-4xl lg:text-5xl font-black mb-4">Preguntas <span class="gradient-text">frecuentes.</span></h2>
+    <!-- ==================== FAQ ==================== -->
+    <section id="faq" class="py-24 lg:py-32">
+        <div class="max-w-2xl mx-auto px-4 lg:px-8">
+            <div class="text-center mb-16">
+                <p class="reveal text-vox-green text-sm font-semibold uppercase tracking-widest mb-4">FAQ</p>
+                <h2 class="reveal text-3xl lg:text-5xl font-black leading-tight">
+                    Preguntas <span class="gradient-text">frecuentes.</span>
+                </h2>
             </div>
-            <div class="space-y-4 fade-in">
-                <div class="collapse collapse-arrow glass rounded-2xl">
+
+            <div class="reveal space-y-3">
+                <div class="collapse collapse-arrow glass-card rounded-2xl">
                     <input type="radio" name="faq" checked="checked" />
-                    <div class="collapse-title text-lg font-semibold">Que tan precisa es la transcripcion?</div>
-                    <div class="collapse-content"><p class="text-gray-400">Vox usa Whisper AI de OpenAI, uno de los modelos de transcripcion mas precisos del mundo. Funciona excelente con espanol, ingles y 90+ idiomas.</p></div>
+                    <div class="collapse-title font-semibold text-white">Que tan precisa es la transcripcion?</div>
+                    <div class="collapse-content"><p class="text-zinc-400 text-sm leading-relaxed pt-1">Usamos Whisper AI de OpenAI, uno de los modelos mas precisos del mundo. 99% de precision en espanol e ingles, y funciona bien con 90+ idiomas.</p></div>
                 </div>
-                <div class="collapse collapse-arrow glass rounded-2xl">
+                <div class="collapse collapse-arrow glass-card rounded-2xl">
                     <input type="radio" name="faq" />
-                    <div class="collapse-title text-lg font-semibold">Necesito internet para usarlo?</div>
-                    <div class="collapse-content"><p class="text-gray-400">Si, el audio se procesa en nuestros servidores con IA. Necesitas conexion a internet para transcribir, pero la app es super ligera y consume muy pocos datos.</p></div>
+                    <div class="collapse-title font-semibold text-white">Necesito internet?</div>
+                    <div class="collapse-content"><p class="text-zinc-400 text-sm leading-relaxed pt-1">Si, el audio se procesa en nuestros servidores con IA. La ventaja es que tu Mac no se calienta ni se pone lenta. Los datos de audio no se almacenan.</p></div>
                 </div>
-                <div class="collapse collapse-arrow glass rounded-2xl">
+                <div class="collapse collapse-arrow glass-card rounded-2xl">
                     <input type="radio" name="faq" />
-                    <div class="collapse-title text-lg font-semibold">Funciona en Windows?</div>
-                    <div class="collapse-content"><p class="text-gray-400">Por ahora solo esta disponible para Mac (Intel y Apple Silicon). Windows esta en nuestro roadmap y llegara pronto.</p></div>
+                    <div class="collapse-title font-semibold text-white">Funciona en Windows?</div>
+                    <div class="collapse-content"><p class="text-zinc-400 text-sm leading-relaxed pt-1">Por ahora solo Mac (Intel y Apple Silicon). Windows esta en el roadmap y llegara pronto.</p></div>
                 </div>
-                <div class="collapse collapse-arrow glass rounded-2xl">
+                <div class="collapse collapse-arrow glass-card rounded-2xl">
                     <input type="radio" name="faq" />
-                    <div class="collapse-title text-lg font-semibold">Que pasa cuando se acaban mis 3,000 palabras?</div>
-                    <div class="collapse-content"><p class="text-gray-400">Tu limite se resetea cada lunes. Si necesitas mas, el plan Pro te da palabras ilimitadas por solo $9/mes.</p></div>
+                    <div class="collapse-title font-semibold text-white">Que pasa cuando gasto mis 3,000 palabras?</div>
+                    <div class="collapse-content"><p class="text-zinc-400 text-sm leading-relaxed pt-1">Tu limite se resetea cada lunes. Si necesitas mas, Pro te da palabras ilimitadas por $9/mes. Puedes cancelar cuando quieras.</p></div>
                 </div>
-                <div class="collapse collapse-arrow glass rounded-2xl">
+                <div class="collapse collapse-arrow glass-card rounded-2xl">
                     <input type="radio" name="faq" />
-                    <div class="collapse-title text-lg font-semibold">Puedo cancelar Pro en cualquier momento?</div>
-                    <div class="collapse-content"><p class="text-gray-400">Si, puedes cancelar cuando quieras. No hay contratos ni compromisos. Tu cuenta vuelve al plan Free automaticamente.</p></div>
+                    <div class="collapse-title font-semibold text-white">Mis datos de audio se guardan?</div>
+                    <div class="collapse-content"><p class="text-zinc-400 text-sm leading-relaxed pt-1">No. El audio se procesa en tiempo real y se descarta inmediatamente despues de la transcripcion. No almacenamos grabaciones.</p></div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Final CTA -->
-    <section class="py-32">
-        <div class="container mx-auto px-6 text-center fade-in">
-            <h2 class="text-4xl lg:text-6xl font-black mb-6">Listo para dejar de<br/><span class="gradient-text">escribir tanto?</span></h2>
-            <p class="text-xl text-gray-400 mb-10 max-w-xl mx-auto">Unete a miles de profesionales que ya dictan en vez de escribir. Empieza con 3,000 palabras gratis.</p>
-            <a href="/login.html?register=1" class="btn btn-lg btn-gradient rounded-full px-10 font-bold text-base">
-                Descargar Vox Easy gratis
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
-            </a>
+    <!-- ==================== FINAL CTA ==================== -->
+    <section class="py-32 lg:py-40 hero-glow">
+        <div class="max-w-3xl mx-auto px-4 text-center">
+            <div class="reveal">
+                <h2 class="text-4xl lg:text-6xl font-black leading-tight mb-6">
+                    Listo para dejar de<br/><span class="gradient-text">escribir tanto?</span>
+                </h2>
+                <p class="text-lg text-zinc-400 mb-10 max-w-lg mx-auto leading-relaxed">
+                    Miles de profesionales ya dictan en vez de escribir. Empieza con 3,000 palabras gratis esta semana.
+                </p>
+                <a href="/login.html?register=1" class="btn btn-lg btn-glow rounded-2xl px-10 text-base gap-2">
+                    Empezar gratis
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+                </a>
+                <p class="text-zinc-600 text-xs mt-6">Sin tarjeta de credito &middot; Sin compromisos &middot; Cancela cuando quieras</p>
+            </div>
         </div>
     </section>
 
-    <!-- Footer -->
+    <!-- ==================== FOOTER ==================== -->
     <footer class="border-t border-white/5 py-16">
-        <div class="container mx-auto px-6 lg:px-12">
-            <div class="grid md:grid-cols-4 gap-12 mb-12">
+        <div class="max-w-6xl mx-auto px-4 lg:px-8">
+            <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
                 <div>
-                    <h3 class="text-xl font-black gradient-text mb-4">Vox Easy</h3>
-                    <p class="text-gray-500 text-sm leading-relaxed">Tu secretaria invisible. Convierte tu voz en texto con IA en cualquier app.</p>
+                    <h3 class="text-lg font-black gradient-text mb-4">Vox Easy</h3>
+                    <p class="text-zinc-500 text-sm leading-relaxed">Tu secretaria invisible. Convierte tu voz en texto con IA.</p>
                 </div>
                 <div>
-                    <h4 class="font-semibold mb-4 text-gray-300">Producto</h4>
-                    <ul class="space-y-2 text-sm text-gray-500">
-                        <li><a href="#features" class="hover:text-white transition">Funciones</a></li>
-                        <li><a href="#pricing" class="hover:text-white transition">Precios</a></li>
-                        <li><a href="#faq" class="hover:text-white transition">FAQ</a></li>
-                        <li><a href="/login.html?register=1" class="hover:text-white transition">Descargar</a></li>
+                    <h4 class="font-semibold text-sm text-zinc-300 mb-4">Producto</h4>
+                    <ul class="space-y-2.5 text-sm text-zinc-500">
+                        <li><a href="#features" class="hover:text-white transition-colors">Funciones</a></li>
+                        <li><a href="#pricing" class="hover:text-white transition-colors">Precios</a></li>
+                        <li><a href="#faq" class="hover:text-white transition-colors">FAQ</a></li>
+                        <li><a href="/login.html?register=1" class="hover:text-white transition-colors">Descargar</a></li>
                     </ul>
                 </div>
                 <div>
-                    <h4 class="font-semibold mb-4 text-gray-300">Recursos</h4>
-                    <ul class="space-y-2 text-sm text-gray-500">
-                        <li><a href="#" class="hover:text-white transition">Blog</a></li>
-                        <li><a href="#" class="hover:text-white transition">Casos de uso</a></li>
-                        <li><a href="#" class="hover:text-white transition">Centro de ayuda</a></li>
+                    <h4 class="font-semibold text-sm text-zinc-300 mb-4">Recursos</h4>
+                    <ul class="space-y-2.5 text-sm text-zinc-500">
+                        <li><a href="#" class="hover:text-white transition-colors">Blog</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Casos de uso</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Centro de ayuda</a></li>
                     </ul>
                 </div>
                 <div>
-                    <h4 class="font-semibold mb-4 text-gray-300">Legal</h4>
-                    <ul class="space-y-2 text-sm text-gray-500">
-                        <li><a href="#" class="hover:text-white transition">Terminos de servicio</a></li>
-                        <li><a href="#" class="hover:text-white transition">Politica de privacidad</a></li>
-                        <li><a href="mailto:hello@voxeasy.com" class="hover:text-white transition">Contacto</a></li>
+                    <h4 class="font-semibold text-sm text-zinc-300 mb-4">Legal</h4>
+                    <ul class="space-y-2.5 text-sm text-zinc-500">
+                        <li><a href="#" class="hover:text-white transition-colors">Terminos</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Privacidad</a></li>
+                        <li><a href="mailto:hello@voxeasy.com" class="hover:text-white transition-colors">Contacto</a></li>
                     </ul>
                 </div>
             </div>
-            <div class="border-t border-white/5 pt-8 text-center text-gray-600 text-sm">
-                <p>&copy; 2026 Vox Easy. Hecho para el futuro del dictado.</p>
+            <div class="border-t border-white/5 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <p class="text-zinc-600 text-xs">&copy; 2026 Vox Easy. Hecho para el futuro del dictado.</p>
+                <div class="flex items-center gap-4 text-zinc-600">
+                    <a href="#" class="hover:text-zinc-400 transition-colors"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+                    <a href="#" class="hover:text-zinc-400 transition-colors"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0112 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"/></svg></a>
+                </div>
             </div>
         </div>
     </footer>
 
-    <!-- Scroll animations -->
+    <!-- ==================== SCRIPTS ==================== -->
     <script>
+        // Intersection Observer for reveal animations
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
-                if (entry.isIntersecting) entry.target.classList.add('visible');
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
             });
-        }, { threshold: 0.1 });
-        document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+        }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+
+        document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+        });
     </script>
 </body>
 </html>
