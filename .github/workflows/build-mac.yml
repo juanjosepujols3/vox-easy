@@ -1,0 +1,78 @@
+name: Build Mac Apps
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build-intel:
+    runs-on: macos-13
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Instalar dependencias
+        run: |
+          pip install customtkinter requests sounddevice pynput pyautogui scipy numpy pyinstaller
+
+      - name: Compilar app Intel
+        run: pyinstaller vox.spec --distpath dist --workpath build --clean
+
+      - name: Crear DMG Intel
+        run: hdiutil create -volname "Vox Easy" -srcfolder "dist/Vox Easy.app" -ov -format UDZO "dist/VoxEasy-Intel.dmg"
+
+      - name: Subir DMG Intel
+        uses: actions/upload-artifact@v4
+        with:
+          name: VoxEasy-Intel
+          path: dist/VoxEasy-Intel.dmg
+
+  build-apple-silicon:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Instalar dependencias
+        run: |
+          pip install customtkinter requests sounddevice pynput pyautogui scipy numpy pyinstaller
+
+      - name: Compilar app Apple Silicon
+        run: |
+          sed -i '' "s/target_arch='x86_64'/target_arch='arm64'/" vox.spec
+          pyinstaller vox.spec --distpath dist --workpath build --clean
+
+      - name: Crear DMG Apple Silicon
+        run: hdiutil create -volname "Vox Easy" -srcfolder "dist/Vox Easy.app" -ov -format UDZO "dist/VoxEasy-AppleSilicon.dmg"
+
+      - name: Subir DMG Apple Silicon
+        uses: actions/upload-artifact@v4
+        with:
+          name: VoxEasy-AppleSilicon
+          path: dist/VoxEasy-AppleSilicon.dmg
+
+  release:
+    needs: [build-intel, build-apple-silicon]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    permissions:
+      contents: write
+    steps:
+      - name: Descargar artifacts
+        uses: actions/download-artifact@v4
+
+      - name: Crear Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            VoxEasy-Intel/VoxEasy-Intel.dmg
+            VoxEasy-AppleSilicon/VoxEasy-AppleSilicon.dmg
+          generate_release_notes: true
