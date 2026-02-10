@@ -25,11 +25,6 @@ app.add_middleware(
 
 FREE_WORD_LIMIT = 3000
 
-# Whisper config
-MODEL_SIZE = os.getenv("WHISPER_MODEL", "tiny")
-DEVICE = os.getenv("WHISPER_DEVICE", "cpu")
-COMPUTE_TYPE = os.getenv("WHISPER_COMPUTE_TYPE", "int8")
-
 transcriber: Transcriber | None = None
 
 
@@ -80,11 +75,7 @@ async def get_weekly_usage(user_id: int, db: AsyncSession) -> WeeklyUsage:
 async def startup():
     global transcriber
     await init_db()
-    transcriber = Transcriber(
-        model_size=MODEL_SIZE,
-        device=DEVICE,
-        compute_type=COMPUTE_TYPE,
-    )
+    transcriber = Transcriber()
 
 
 # ─── Health ────────────────────────────────────────────
@@ -158,6 +149,9 @@ async def me(user: User = Depends(get_current_user)):
 @app.post("/transcribe")
 async def transcribe(
     file: UploadFile = File(...),
+    language: str | None = None,
+    temperature: str | None = None,
+    prompt: str | None = None,
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
@@ -181,7 +175,7 @@ async def transcribe(
         with open(tmp_path, "wb") as f:
             f.write(contents)
 
-        text = transcriber.transcribe(tmp_path)
+        text = transcriber.transcribe(tmp_path, language=language, prompt=prompt)
         word_count = len(text.split()) if text else 0
 
         # Actualizar uso semanal
