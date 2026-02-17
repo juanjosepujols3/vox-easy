@@ -2149,7 +2149,7 @@
         if (!email) return;
         // TODO: Wire to real API when team feature is available on backend
         input.value = '';
-        const card = input.closest('.card-dark');
+        const card = input.closest('.card');
         const msg = document.createElement('p');
         msg.style.cssText = 'font-size:11px; color:var(--success); margin-top:8px;';
         msg.textContent = 'Invitacion registrada para ' + email + '. Se enviara cuando la funcion de equipos este disponible.';
