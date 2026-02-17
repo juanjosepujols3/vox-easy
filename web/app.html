@@ -9,115 +9,412 @@
     <script src="tailwind.js"></script>
     <script>
       tailwind.config = {
-        theme: { extend: { fontFamily: { sans: ['-apple-system', 'BlinkMacSystemFont', 'Inter', 'sans-serif'] }, colors: { vox: { purple: '#a78bfa', green: '#55e6c1', dark: '#0a0a0c' } } } }
+        theme: { extend: { fontFamily: { sans: ['-apple-system', 'BlinkMacSystemFont', 'Inter', 'sans-serif'] } } }
       }
     </script>
+    <!-- Anti-FOUC: apply theme before paint -->
+    <script>
+      (function() {
+        try {
+          var theme = localStorage.getItem('vox-theme') || 'system';
+          if (theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.setAttribute('data-theme', 'dark');
+          } else {
+            document.documentElement.setAttribute('data-theme', 'light');
+          }
+        } catch(e) {}
+      })();
+    </script>
     <style>
+      /* ══════════════════════════════════════════════════════
+         DESIGN SYSTEM — Vox Easy (Flow-inspired)
+         Light mode default, dark mode via [data-theme="dark"]
+         ══════════════════════════════════════════════════════ */
+
+      /* ── CSS Custom Properties ── */
+      :root {
+        --bg:           #ffffff;
+        --bg-subtle:    #f9f9fb;
+        --sidebar-bg:   #f5f5f7;
+        --border:       #e5e5e7;
+        --text-primary: #111111;
+        --text-muted:   #6b7280;
+        --accent:       #7c3aed;
+        --accent-light: #ede9fe;
+        --accent-hover: #6d28d9;
+        --success:      #16a34a;
+        --danger:       #dc2626;
+        --warning:      #d97706;
+        --radius:       8px;
+        --radius-lg:    12px;
+        --shadow-sm:    0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+        --shadow-md:    0 4px 12px rgba(0,0,0,0.08);
+        --shadow-lg:    0 8px 24px rgba(0,0,0,0.12);
+      }
+      [data-theme="dark"] {
+        --bg:           #0a0a0c;
+        --bg-subtle:    #111114;
+        --sidebar-bg:   #111114;
+        --border:       rgba(255,255,255,0.08);
+        --text-primary: #f3f4f6;
+        --text-muted:   #9ca3af;
+        --accent:       #8b5cf6;
+        --accent-light: rgba(139,92,246,0.15);
+        --accent-hover: #7c3aed;
+        --shadow-sm:    0 1px 3px rgba(0,0,0,0.3);
+        --shadow-md:    0 4px 12px rgba(0,0,0,0.4);
+        --shadow-lg:    0 8px 24px rgba(0,0,0,0.5);
+      }
+
       /* ── Base ── */
-      body { font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif; margin: 0; overflow: hidden; }
-      [data-theme="dark"] body, :not([data-theme]) body { background: #0a0a0c; color: #e5e7eb; }
-      [data-theme="light"] body { background: #f5f5f7; color: #1a1a1a; }
-      .gradient-text { background: linear-gradient(135deg, #a78bfa, #55e6c1); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-      .glass { border: 1px solid rgba(255,255,255,0.08); backdrop-filter: blur(12px); }
-      [data-theme="dark"] .glass, :not([data-theme]) .glass { background: rgba(255,255,255,0.03); }
-      [data-theme="light"] .glass { background: rgba(0,0,0,0.02); border-color: rgba(0,0,0,0.08); }
-      .btn-gradient { background: linear-gradient(135deg, #a78bfa, #55e6c1); color: #000; border: none; }
-      .btn-gradient:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(162,155,254,0.3); }
-      .glow-purple { box-shadow: 0 0 60px rgba(162,155,254,0.1); }
-      .hero-bg { background: radial-gradient(ellipse at 50% 0%, rgba(162,155,254,0.08) 0%, transparent 60%); }
-      .progress-gradient { background: linear-gradient(90deg, #a78bfa, #55e6c1); }
-      /* ── Sidebar ── */
-      [data-theme="dark"] .app-sidebar, :not([data-theme]) .app-sidebar { background: #111114; border-color: rgba(255,255,255,0.05); }
-      [data-theme="light"] .app-sidebar { background: #eeeef0; border-color: rgba(0,0,0,0.08); }
-      .sidebar-nav .active { background: rgba(255,255,255,0.06); }
-      .sidebar-nav button:hover { background: rgba(255,255,255,0.04); }
-      [data-theme="light"] .sidebar-nav .active { background: rgba(0,0,0,0.06); }
-      [data-theme="light"] .sidebar-nav button:hover { background: rgba(0,0,0,0.04); }
-      .history-item:hover { background: rgba(255,255,255,0.03); }
-      .history-item:hover .copy-btn { opacity: 1; }
-      .copy-btn { opacity: 0; transition: opacity 0.15s; }
+      * { box-sizing: border-box; }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", Inter, sans-serif;
+        margin: 0; overflow: hidden;
+        background: var(--bg);
+        color: var(--text-primary);
+        font-size: 13px;
+        line-height: 1.5;
+      }
+      h1 { font-size: 20px; font-weight: 600; margin: 0; }
+      h2 { font-size: 16px; font-weight: 600; margin: 0; }
+      h3 { font-size: 14px; font-weight: 600; margin: 0; }
+
+      /* ── Page layout ── */
       .page { display: none; }
       .page.visible { display: flex; }
+
       /* ── Cards ── */
-      [data-theme="dark"] .card-dark, :not([data-theme]) .card-dark { background: #18181B; border: 1px solid rgba(255,255,255,0.05); }
-      [data-theme="light"] .card-dark { background: #ffffff; border: 1px solid rgba(0,0,0,0.08); }
-      .gradient-border-line { background: linear-gradient(90deg, #8B5CF6, #2DD4BF); height: 2px; border-radius: 1px; }
-      /* ── Toggle switch ── */
-      .toggle-sw { position: relative; width: 40px; height: 20px; }
-      .toggle-sw input { opacity: 0; width: 0; height: 0; }
-      .toggle-sw .slider { position: absolute; inset: 0; background: rgba(255,255,255,0.1); border-radius: 20px; cursor: pointer; transition: 0.3s; }
-      .toggle-sw .slider:before { content: ''; position: absolute; height: 16px; width: 16px; left: 2px; bottom: 2px; background: white; border-radius: 50%; transition: 0.3s; }
-      .toggle-sw input:checked + .slider { background: #a78bfa; }
-      .toggle-sw input:checked + .slider:before { transform: translateX(20px); }
-      [data-theme="light"] .toggle-sw .slider { background: rgba(0,0,0,0.15); }
+      .card {
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+      }
+      /* Keep card-dark as alias for backwards compat */
+      .card-dark {
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+      }
+
+      /* ── Sidebar ── */
+      .app-sidebar {
+        background: var(--sidebar-bg);
+        border-color: var(--border) !important;
+      }
+
+      /* ── Nav items ── */
+      .nav-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 7px 10px;
+        border-radius: var(--radius);
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--text-muted);
+        cursor: pointer;
+        border: none;
+        background: transparent;
+        width: 100%;
+        text-align: left;
+        transition: background 0.12s, color 0.12s;
+      }
+      .nav-item:hover {
+        background: var(--border);
+        color: var(--text-primary);
+      }
+      .nav-item.active {
+        background: var(--accent-light);
+        color: var(--accent);
+        font-weight: 600;
+      }
+      .nav-item .material-icons-round { font-size: 18px; flex-shrink: 0; }
+
+      /* ── Usage card ── */
+      .usage-card {
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 12px;
+      }
+      .usage-bar-track {
+        height: 4px;
+        background: var(--border);
+        border-radius: 9999px;
+        overflow: hidden;
+        margin: 6px 0;
+      }
+      .usage-bar-fill {
+        height: 100%;
+        background: var(--accent);
+        border-radius: 9999px;
+        transition: width 0.6s ease;
+      }
+      .upgrade-btn {
+        width: 100%;
+        padding: 6px 12px;
+        font-size: 12px;
+        font-weight: 600;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: transparent;
+        color: var(--text-muted);
+        cursor: pointer;
+        transition: all 0.15s;
+      }
+      .upgrade-btn:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+        background: var(--accent-light);
+      }
+
+      /* ── Buttons ── */
+      .btn-primary {
+        background: var(--accent);
+        color: white;
+        border: none;
+        border-radius: var(--radius);
+        padding: 7px 16px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.15s;
+      }
+      .btn-primary:hover { background: var(--accent-hover); }
+      .btn-ghost {
+        background: transparent;
+        border: 1px solid var(--border);
+        color: var(--text-muted);
+        border-radius: var(--radius);
+        padding: 7px 16px;
+        font-size: 13px;
+        cursor: pointer;
+        transition: all 0.15s;
+      }
+      .btn-ghost:hover { border-color: var(--text-muted); color: var(--text-primary); }
+
+      /* For login/permissions pages — keep gradient */
+      .btn-gradient { background: linear-gradient(135deg, #8b5cf6, #06b6d4); color: white; border: none; }
+      .btn-gradient:hover { opacity: 0.9; }
+      .gradient-text { background: linear-gradient(135deg, #8b5cf6, #06b6d4); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+      .hero-bg { background: var(--bg-subtle); }
+
+      /* ── Status chip ── */
+      .status-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 5px 12px;
+        border: 1px solid var(--border);
+        border-radius: 9999px;
+        font-size: 12px;
+        color: var(--text-muted);
+        background: var(--bg);
+      }
+      .status-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: #9ca3af;
+        flex-shrink: 0;
+      }
+      .status-dot.recording { background: #ef4444; animation: pulse-recording 1.2s ease-in-out infinite; }
+      .status-dot.processing { background: var(--accent); }
+      .status-dot.done { background: var(--success); }
+      .status-dot.error { background: var(--danger); }
+
+      /* ── Hero card ── */
+      .hero-card {
+        background: #fefce8;
+        border: 1px solid #fde68a;
+        border-radius: var(--radius-lg);
+      }
+      [data-theme="dark"] .hero-card {
+        background: rgba(254,252,232,0.04);
+        border-color: rgba(253,230,138,0.15);
+      }
+
+      /* ── History ── */
+      .history-date-header {
+        padding: 8px 16px 4px;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--text-muted);
+      }
+      .history-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 16px;
+        transition: background 0.1s;
+        border-bottom: 1px solid var(--border);
+      }
+      .history-item:last-child { border-bottom: none; }
+      .history-item:hover { background: var(--bg-subtle); }
+      .history-item:hover .copy-btn { opacity: 1; }
+      .copy-btn { opacity: 0; transition: opacity 0.15s; color: var(--text-muted); background: none; border: none; cursor: pointer; padding: 2px; }
+      .copy-btn:hover { color: var(--accent); }
+
+      /* ── Input base ── */
+      .input-base {
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--bg);
+        color: var(--text-primary);
+        padding: 6px 12px;
+        font-size: 13px;
+        outline: none;
+        transition: border-color 0.15s;
+        font-family: inherit;
+      }
+      .input-base:focus { border-color: var(--accent); }
+      .input-base::placeholder { color: var(--text-muted); }
+
       /* ── Pill buttons ── */
-      .pill-btn { padding: 6px 16px; border-radius: 9999px; font-size: 12px; font-weight: 600; border: 1px solid rgba(255,255,255,0.1); background: transparent; color: #999; cursor: pointer; transition: all 0.2s; }
-      .pill-btn:hover { border-color: rgba(255,255,255,0.2); color: #ccc; }
-      .pill-btn.active { background: #a78bfa; color: #000; border-color: #a78bfa; }
-      [data-theme="light"] .pill-btn { border-color: rgba(0,0,0,0.15); color: #666; }
-      [data-theme="light"] .pill-btn:hover { border-color: rgba(0,0,0,0.3); color: #333; }
+      .pill-btn {
+        padding: 5px 14px;
+        border-radius: 9999px;
+        font-size: 12px;
+        font-weight: 600;
+        border: 1px solid var(--border);
+        background: transparent;
+        color: var(--text-muted);
+        cursor: pointer;
+        transition: all 0.15s;
+      }
+      .pill-btn:hover { border-color: var(--text-muted); color: var(--text-primary); }
+      .pill-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+
+      /* ── Toggle switch ── */
+      .toggle-sw { position: relative; width: 38px; height: 20px; flex-shrink: 0; }
+      .toggle-sw input { opacity: 0; width: 0; height: 0; }
+      .toggle-sw .slider { position: absolute; inset: 0; background: var(--border); border-radius: 20px; cursor: pointer; transition: 0.25s; }
+      .toggle-sw .slider:before { content: ''; position: absolute; height: 16px; width: 16px; left: 2px; bottom: 2px; background: white; border-radius: 50%; transition: 0.25s; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+      .toggle-sw input:checked + .slider { background: var(--accent); }
+      .toggle-sw input:checked + .slider:before { transform: translateX(18px); }
+
       /* ── Scrollbar ── */
-      ::-webkit-scrollbar { width: 6px; }
+      ::-webkit-scrollbar { width: 5px; }
       ::-webkit-scrollbar-track { background: transparent; }
-      ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
-      ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
-      [data-theme="light"] ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); }
-      [data-theme="light"] ::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.25); }
+      ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+      ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); opacity: 0.5; }
+
       /* ── Modals ── */
-      .modal-overlay { background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); }
-      .settings-modal-overlay { background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); }
+      .modal-overlay { background: rgba(0,0,0,0.5); backdrop-filter: blur(2px); }
+      .settings-modal-overlay { background: rgba(0,0,0,0.55); backdrop-filter: blur(4px); }
+      .modal-box {
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-lg);
+      }
+
       /* ── Settings modal ── */
-      [data-theme="dark"] .settings-modal-bg, :not([data-theme]) .settings-modal-bg { background: #161616; }
-      [data-theme="light"] .settings-modal-bg { background: #ffffff; }
-      [data-theme="dark"] .settings-sidebar-bg, :not([data-theme]) .settings-sidebar-bg { background: #111111; }
-      [data-theme="light"] .settings-sidebar-bg { background: #f0f0f2; }
-      /* ── Animations ── */
-      @keyframes pulse-recording { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-      .recording-pulse { animation: pulse-recording 1.5s ease-in-out infinite; }
+      .settings-modal-bg { background: var(--bg); }
+      .settings-sidebar-bg { background: var(--sidebar-bg); }
+
       /* ── Settings nav ── */
-      .settings-nav .s-active { background: rgba(255,255,255,0.1); color: white; }
-      .settings-nav button:hover { background: rgba(255,255,255,0.05); }
-      [data-theme="light"] .settings-nav .s-active { background: rgba(0,0,0,0.08); color: #111; }
-      [data-theme="light"] .settings-nav button:hover { background: rgba(0,0,0,0.04); }
+      .settings-nav .s-active { background: var(--accent-light); color: var(--accent); font-weight: 600; }
+      .settings-nav button:hover:not(.s-active) { background: var(--border); color: var(--text-primary); }
+      .settings-nav button { color: var(--text-muted); }
+
       /* ── Table ── */
+      .table-row:hover { background: var(--bg-subtle); }
       .table-row:hover .row-actions { opacity: 1; }
       .row-actions { opacity: 0; transition: opacity 0.15s; }
-      /* ── Light mode text helpers ── */
-      [data-theme="light"] .text-gray-100 { color: #1a1a1a !important; }
-      [data-theme="light"] .text-gray-200 { color: #2a2a2a !important; }
-      [data-theme="light"] .text-gray-300 { color: #444 !important; }
-      [data-theme="light"] .text-gray-400 { color: #666 !important; }
-      [data-theme="light"] .text-gray-500 { color: #888 !important; }
-      [data-theme="light"] .bg-white\/5, [data-theme="light"] .bg-white\/\[0\.03\], [data-theme="light"] .bg-white\/\[0\.04\] { background: rgba(0,0,0,0.04) !important; }
-      [data-theme="light"] .border-white\/5, [data-theme="light"] .border-white\/10 { border-color: rgba(0,0,0,0.08) !important; }
+      table thead th {
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--text-muted);
+      }
+
+      /* ── Analytics bars ── */
+      .analytics-bar { background: var(--accent); border-radius: 3px; }
+      .analytics-bar-track { background: var(--border); border-radius: 9999px; }
+
+      /* ── Animations ── */
+      @keyframes pulse-recording { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+      .recording-pulse { animation: pulse-recording 1.2s ease-in-out infinite; }
+
+      /* ── Progress bar (status) ── */
+      .status-progress-track { background: var(--border); border-radius: 9999px; height: 3px; overflow: hidden; }
+      .status-progress-fill { height: 100%; background: var(--accent); border-radius: 9999px; transition: width 0.4s ease; }
+      .status-progress-fill.recording { background: #ef4444; animation: pulse-recording 1.2s ease-in-out infinite; }
+
+      /* ── Select inputs ── */
+      select.input-base { -webkit-appearance: none; padding-right: 28px;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+        background-repeat: no-repeat; background-position: right 8px center; }
+
+      /* ── Global gray class remaps (for settings content, legacy) ── */
+      .text-gray-100, .text-gray-200 { color: var(--text-primary) !important; }
+      .text-gray-300, .text-gray-400 { color: var(--text-primary) !important; }
+      .text-gray-500, .text-gray-600 { color: var(--text-muted) !important; }
+      .bg-white\/5, .bg-white\/\[0\.03\], .bg-white\/\[0\.04\], .bg-white\/\[0\.05\] { background: var(--bg-subtle) !important; }
+      .border-white\/5, .border-white\/10 { border-color: var(--border) !important; }
+      .divide-white\/5 > * + * { border-color: var(--border) !important; }
+      .bg-base-300\/30 { background: var(--bg-subtle) !important; }
+      .bg-\[#18181B\] { background: var(--bg) !important; }
+
+      /* ── DaisyUI overrides ── */
+      .input, .textarea, .select {
+        background: var(--bg) !important;
+        border-color: var(--border) !important;
+        color: var(--text-primary) !important;
+        font-family: inherit !important;
+        font-size: 13px !important;
+      }
+      .input:focus, .textarea:focus, .select:focus {
+        border-color: var(--accent) !important;
+        outline: none !important;
+        box-shadow: none !important;
+      }
+      .btn { font-family: inherit !important; }
+      .tabs-boxed { background: var(--bg-subtle) !important; }
+      .tab { color: var(--text-muted) !important; }
+      .tab-active { color: var(--text-primary) !important; }
+      .loading.loading-spinner { color: var(--accent); }
+
+      /* ── Login / Permissions pages ── */
+      .auth-card {
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-lg);
+      }
     </style>
 </head>
-<body class="text-gray-100 h-screen flex flex-col">
+<body class="h-screen flex flex-col" style="color: var(--text-primary); background: var(--bg);">
 
 <!-- ═══════════════════════════════════════════════════════════════
      PAGE: PERMISSIONS
      ═══════════════════════════════════════════════════════════════ -->
 <div id="page-permissions" class="page hero-bg items-center justify-center px-4 h-screen">
-    <div class="w-full max-w-md">
-        <div class="text-center mb-8">
-            <span class="text-3xl font-black gradient-text">Vox Easy</span>
-            <p class="text-gray-500 mt-2 text-sm">Configuracion inicial</p>
+    <div class="w-full max-w-sm">
+        <div class="text-center mb-6">
+            <span class="text-2xl font-bold" style="color:var(--text-primary);">Vox Easy</span>
+            <p class="mt-1 text-sm" style="color:var(--text-muted);">Configuracion inicial</p>
         </div>
-        <div class="glass rounded-3xl p-8 glow-purple">
+        <div class="auth-card p-8">
             <div class="text-center mb-6">
-                <div class="text-5xl mb-4">&#x1f510;</div>
-                <h2 class="text-xl font-bold text-gray-100 mb-2">Permisos necesarios</h2>
-                <p class="text-sm text-gray-400">Vox Easy necesita permisos de <strong class="text-gray-200">Accesibilidad</strong> para detectar el atajo de teclado y escribir texto en cualquier aplicacion.</p>
+                <div class="text-4xl mb-3">🔐</div>
+                <h2 class="text-lg font-semibold mb-2" style="color:var(--text-primary);">Permisos necesarios</h2>
+                <p class="text-sm" style="color:var(--text-muted);">Vox Easy necesita permisos de <strong style="color:var(--text-primary);">Accesibilidad</strong> para detectar el atajo de teclado y escribir texto en cualquier aplicacion.</p>
             </div>
             <div class="space-y-3 mb-6">
-                <div class="flex items-start gap-3"><span class="bg-vox-purple/20 text-vox-purple rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">1</span><p class="text-sm text-gray-300">Haz clic en <strong class="text-gray-100">"Abrir Ajustes"</strong></p></div>
-                <div class="flex items-start gap-3"><span class="bg-vox-purple/20 text-vox-purple rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">2</span><p class="text-sm text-gray-300">Activa el switch junto a <strong class="text-gray-100">Vox Easy</strong></p></div>
-                <div class="flex items-start gap-3"><span class="bg-vox-purple/20 text-vox-purple rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">3</span><p class="text-sm text-gray-300">Vuelve aqui — se detectara <strong class="text-gray-100">automaticamente</strong></p></div>
+                <div class="flex items-start gap-3"><span class="rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5" style="background:var(--accent-light); color:var(--accent);">1</span><p class="text-sm" style="color:var(--text-primary);">Haz clic en <strong>"Abrir Ajustes"</strong></p></div>
+                <div class="flex items-start gap-3"><span class="rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5" style="background:var(--accent-light); color:var(--accent);">2</span><p class="text-sm" style="color:var(--text-primary);">Activa el switch junto a <strong>Vox Easy</strong></p></div>
+                <div class="flex items-start gap-3"><span class="rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5" style="background:var(--accent-light); color:var(--accent);">3</span><p class="text-sm" style="color:var(--text-primary);">Vuelve aqui — se detectara <strong>automaticamente</strong></p></div>
             </div>
-            <button onclick="handleRequestPermissions()" class="btn btn-gradient w-full rounded-full font-bold text-base mb-4">Abrir Ajustes</button>
+            <button onclick="handleRequestPermissions()" class="btn-primary w-full mb-4" style="justify-content:center; padding: 10px;">Abrir Ajustes</button>
             <div id="permissions-status" class="flex items-center justify-center gap-2">
-                <span class="loading loading-spinner loading-xs text-vox-purple"></span>
-                <span class="text-xs text-gray-500">Esperando permisos...</span>
+                <span class="loading loading-spinner loading-xs"></span>
+                <span class="text-xs" style="color:var(--text-muted);">Esperando permisos...</span>
             </div>
         </div>
     </div>
@@ -127,35 +424,35 @@
      PAGE: LOGIN
      ═══════════════════════════════════════════════════════════════ -->
 <div id="page-login" class="page hero-bg items-center justify-center px-4 h-screen">
-    <div class="w-full max-w-md">
-        <div class="text-center mb-8">
-            <span class="text-3xl font-black gradient-text">Vox Easy</span>
-            <p class="text-gray-500 mt-2 text-sm">Dictado por voz impulsado por IA</p>
+    <div class="w-full max-w-sm">
+        <div class="text-center mb-6">
+            <span class="text-2xl font-bold" style="color:var(--text-primary);">Vox Easy</span>
+            <p class="mt-1 text-sm" style="color:var(--text-muted);">Dictado por voz impulsado por IA</p>
         </div>
-        <div class="glass rounded-3xl p-8 glow-purple">
-            <div class="tabs tabs-boxed bg-base-300/30 mb-8 p-1 rounded-2xl">
-                <button id="tab-login" class="tab tab-lg flex-1 font-semibold tab-active" onclick="showLoginTab('login')">Iniciar sesion</button>
-                <button id="tab-register" class="tab tab-lg flex-1 font-semibold" onclick="showLoginTab('register')">Crear cuenta</button>
+        <div class="auth-card p-7">
+            <div class="flex gap-1 p-1 rounded-lg mb-6" style="background:var(--bg-subtle);">
+                <button id="tab-login" class="flex-1 py-1.5 rounded-md text-sm font-semibold transition-all" style="background:var(--bg); color:var(--text-primary); box-shadow:var(--shadow-sm); border:1px solid var(--border);" onclick="showLoginTab('login')">Iniciar sesion</button>
+                <button id="tab-register" class="flex-1 py-1.5 rounded-md text-sm font-medium transition-all" style="background:transparent; color:var(--text-muted); border:none; cursor:pointer;" onclick="showLoginTab('register')">Crear cuenta</button>
             </div>
             <form id="form-login" onsubmit="handleLogin(event)">
-                <div class="space-y-4">
-                    <div><label class="label"><span class="label-text text-gray-400 text-sm">Email</span></label><input type="email" id="login-email" placeholder="tu@email.com" class="input input-bordered w-full bg-base-300/30 border-white/10 focus:border-vox-purple" required /></div>
-                    <div><label class="label"><span class="label-text text-gray-400 text-sm">Contrasena</span></label><input type="password" id="login-password" placeholder="********" class="input input-bordered w-full bg-base-300/30 border-white/10 focus:border-vox-purple" required /></div>
+                <div class="space-y-3">
+                    <div><label class="text-xs font-medium block mb-1" style="color:var(--text-muted);">Email</label><input type="email" id="login-email" placeholder="tu@email.com" class="input-base w-full" required /></div>
+                    <div><label class="text-xs font-medium block mb-1" style="color:var(--text-muted);">Contrasena</label><input type="password" id="login-password" placeholder="••••••••" class="input-base w-full" required /></div>
                 </div>
-                <div id="login-error" class="text-red-400 text-sm mt-3 hidden"></div>
-                <button type="submit" id="login-btn" class="btn btn-gradient w-full mt-6 rounded-full font-bold text-base">Entrar</button>
+                <div id="login-error" class="text-sm mt-3 hidden" style="color:var(--danger);"></div>
+                <button type="submit" id="login-btn" class="btn-primary w-full mt-5" style="justify-content:center; padding:10px;">Entrar</button>
             </form>
             <form id="form-register" class="hidden" onsubmit="handleRegister(event)">
-                <div class="space-y-4">
-                    <div><label class="label"><span class="label-text text-gray-400 text-sm">Nombre</span></label><input type="text" id="register-name" placeholder="Tu nombre" class="input input-bordered w-full bg-base-300/30 border-white/10 focus:border-vox-purple" required /></div>
-                    <div><label class="label"><span class="label-text text-gray-400 text-sm">Email</span></label><input type="email" id="register-email" placeholder="tu@email.com" class="input input-bordered w-full bg-base-300/30 border-white/10 focus:border-vox-purple" required /></div>
-                    <div><label class="label"><span class="label-text text-gray-400 text-sm">Contrasena</span></label><input type="password" id="register-password" placeholder="Minimo 6 caracteres" class="input input-bordered w-full bg-base-300/30 border-white/10 focus:border-vox-purple" required minlength="6" /></div>
+                <div class="space-y-3">
+                    <div><label class="text-xs font-medium block mb-1" style="color:var(--text-muted);">Nombre</label><input type="text" id="register-name" placeholder="Tu nombre" class="input-base w-full" required /></div>
+                    <div><label class="text-xs font-medium block mb-1" style="color:var(--text-muted);">Email</label><input type="email" id="register-email" placeholder="tu@email.com" class="input-base w-full" required /></div>
+                    <div><label class="text-xs font-medium block mb-1" style="color:var(--text-muted);">Contrasena</label><input type="password" id="register-password" placeholder="Minimo 6 caracteres" class="input-base w-full" required minlength="6" /></div>
                 </div>
-                <div id="register-error" class="text-red-400 text-sm mt-3 hidden"></div>
-                <button type="submit" id="register-btn" class="btn btn-gradient w-full mt-6 rounded-full font-bold text-base">Crear cuenta gratis</button>
+                <div id="register-error" class="text-sm mt-3 hidden" style="color:var(--danger);"></div>
+                <button type="submit" id="register-btn" class="btn-primary w-full mt-5" style="justify-content:center; padding:10px;">Crear cuenta gratis</button>
             </form>
         </div>
-        <p class="text-center text-gray-600 text-xs mt-6">Al crear cuenta aceptas los <a href="#" class="text-vox-purple hover:underline">terminos de servicio</a></p>
+        <p class="text-center text-xs mt-5" style="color:var(--text-muted);">Al crear cuenta aceptas los <a href="#" style="color:var(--accent);">terminos de servicio</a></p>
     </div>
 </div>
 
@@ -165,207 +462,224 @@
 <div id="page-app" class="page h-screen">
 
     <!-- Sidebar -->
-    <aside class="app-sidebar w-[220px] flex-shrink-0 border-r flex flex-col h-full">
+    <aside class="app-sidebar w-52 flex-shrink-0 border-r flex flex-col h-full" style="border-color: var(--border);">
         <!-- Logo -->
-        <div class="px-5 py-5">
-            <span class="text-xl font-black gradient-text">Vox Easy</span>
+        <div class="px-4 py-4 flex items-center gap-2" style="border-bottom: 1px solid var(--border);">
+            <span class="text-base font-bold" style="color: var(--text-primary);">Vox Easy</span>
+            <span class="ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full" style="background: var(--accent-light); color: var(--accent);">Pro</span>
         </div>
 
         <!-- Nav -->
-        <nav class="sidebar-nav flex flex-col gap-0.5 px-3 flex-1">
-            <button id="nav-home" onclick="showView('home')" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-300 transition-colors active">
-                <span class="material-icons-round text-lg">home</span> Inicio
+        <nav class="sidebar-nav flex flex-col gap-0.5 px-2 py-3 flex-1">
+            <button id="nav-home" onclick="showView('home')" class="nav-item active">
+                <span class="material-icons-round">home</span> Inicio
             </button>
-            <button id="nav-dictionary" onclick="showView('dictionary')" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-300 transition-colors">
-                <span class="material-icons-round text-lg">book</span> Diccionario
+            <button id="nav-dictionary" onclick="showView('dictionary')" class="nav-item">
+                <span class="material-icons-round">book</span> Diccionario
             </button>
-            <button id="nav-snippets" onclick="showView('snippets')" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-300 transition-colors">
-                <span class="material-icons-round text-lg">content_cut</span> Atajos de texto
+            <button id="nav-snippets" onclick="showView('snippets')" class="nav-item">
+                <span class="material-icons-round">content_cut</span> Atajos de texto
             </button>
-            <button id="nav-style" onclick="showView('style')" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-300 transition-colors">
-                <span class="material-icons-round text-lg">palette</span> Estilo
+            <button id="nav-style" onclick="showView('style')" class="nav-item">
+                <span class="material-icons-round">palette</span> Estilo
             </button>
-            <button id="nav-notes" onclick="showView('notes')" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-300 transition-colors">
-                <span class="material-icons-round text-lg">description</span> Notas
+            <button id="nav-notes" onclick="showView('notes')" class="nav-item">
+                <span class="material-icons-round">description</span> Notas
             </button>
-            <button id="nav-analytics" onclick="showView('analytics')" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-300 transition-colors">
-                <span class="material-icons-round text-lg">bar_chart</span> Analiticas
+            <button id="nav-analytics" onclick="showView('analytics')" class="nav-item">
+                <span class="material-icons-round">bar_chart</span> Analiticas
             </button>
         </nav>
 
-        <!-- Plan info -->
+        <!-- Usage card -->
         <div class="px-3 pb-2">
-            <div class="bg-white/[0.03] rounded-xl p-3 border border-white/5">
-                <div class="flex items-center justify-between mb-1">
-                    <span id="sidebar-plan" class="text-xs font-bold text-gray-400">Free</span>
+            <div class="usage-card">
+                <div class="flex items-center justify-between mb-0.5">
+                    <span id="sidebar-plan" class="text-xs font-bold" style="color: var(--text-muted);">Free</span>
                 </div>
-                <p id="sidebar-words" class="text-[11px] text-gray-500 mb-2">Usadas 0 de 3,000</p>
-                <div class="w-full bg-white/5 rounded-full h-1.5 mb-2">
-                    <div id="sidebar-usage-bar" class="progress-gradient h-1.5 rounded-full transition-all duration-700" style="width: 0%"></div>
+                <p id="sidebar-words" class="text-[11px] mb-1" style="color: var(--text-muted);">0 de 3,000 palabras</p>
+                <div class="usage-bar-track">
+                    <div id="sidebar-usage-bar" class="usage-bar-fill" style="width: 0%"></div>
                 </div>
-                <button onclick="handleUpgrade()" class="btn btn-gradient btn-xs w-full rounded-lg font-bold text-[11px]">Actualizar a Pro</button>
+                <button onclick="handleUpgrade()" class="upgrade-btn mt-2">Actualizar a Pro</button>
             </div>
         </div>
 
         <!-- Bottom: Settings + Avatar -->
-        <div class="px-3 pb-3 space-y-1">
-            <button onclick="openSettingsModal()" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-400 hover:text-gray-200 hover:bg-white/[0.04] transition-colors w-full">
-                <span class="material-icons-round text-lg">settings</span> Configuracion
+        <div class="px-2 pb-3 space-y-0.5">
+            <button onclick="openSettingsModal()" class="nav-item">
+                <span class="material-icons-round">settings</span> Configuracion
             </button>
-            <button id="sidebar-user-row" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-300 hover:bg-white/[0.04] transition-colors w-full cursor-pointer">
-                <img id="sidebar-avatar" src="https://api.dicebear.com/7.x/adventurer/svg?seed=user" class="w-7 h-7 rounded-full bg-white/5" />
-                <span id="sidebar-username" class="text-sm text-gray-300 truncate">Usuario</span>
+            <button id="sidebar-user-row" class="nav-item cursor-pointer">
+                <img id="sidebar-avatar" src="https://api.dicebear.com/7.x/adventurer/svg?seed=user" class="w-6 h-6 rounded-full flex-shrink-0" style="border: 1px solid var(--border);" />
+                <span id="sidebar-username" class="truncate">Usuario</span>
             </button>
         </div>
     </aside>
 
     <!-- Main content area -->
-    <main class="flex-1 overflow-y-auto h-full">
+    <main class="flex-1 overflow-y-auto h-full" style="background: var(--bg);">
 
         <!-- ── VIEW: HOME ──────────────────────────────────── -->
-        <div id="view-home" class="p-8">
-            <h1 class="text-2xl font-bold text-gray-100 mb-1">Bienvenido a <span class="gradient-text">Vox Easy</span></h1>
-            <p class="text-gray-500 text-sm mb-6">Dictado por voz impulsado por IA</p>
+        <div id="view-home" class="p-6">
+            <!-- Welcome header with stats -->
+            <div class="flex items-start justify-between mb-5">
+                <div>
+                    <h1 style="color: var(--text-primary);">Buenos dias, <span id="header-name">...</span></h1>
+                    <p class="mt-0.5 text-sm" style="color: var(--text-muted);">Dictado por voz impulsado por IA</p>
+                </div>
+                <div class="flex items-center gap-0 text-xs" style="color: var(--text-muted); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden;">
+                    <span class="px-3 py-2" style="border-right: 1px solid var(--border);">🔥 <span id="stat-streak">0</span> dias</span>
+                    <span class="px-3 py-2" style="border-right: 1px solid var(--border);">🚀 <span id="stat-words-today">0</span> palabras hoy</span>
+                    <span class="px-3 py-2">⌨️ <span id="stat-wpm">—</span> PPM</span>
+                </div>
+            </div>
 
-            <!-- Status Card -->
-            <div class="glass rounded-2xl p-6 glow-purple mb-6">
-                <div class="flex items-center gap-4">
-                    <div id="status-icon" class="text-3xl flex-shrink-0">&#x1f399;</div>
-                    <div class="flex-1 min-w-0">
-                        <div id="status-title" class="text-lg font-bold text-gray-100">Vox listo</div>
-                        <div id="status-subtitle" class="text-sm text-gray-500">Esperando comando de voz...</div>
-                    </div>
-                    <div id="hotkey-pill" class="bg-white/[0.05] border border-white/10 rounded-lg px-3 py-1.5 text-xs font-bold text-vox-purple flex-shrink-0">...</div>
-                </div>
-                <div class="mt-4 w-full bg-white/5 rounded-full h-1">
-                    <div id="status-progress" class="progress-gradient h-1 rounded-full transition-all duration-500" style="width: 0%"></div>
-                </div>
+            <!-- Status chip -->
+            <div class="status-chip mb-4">
+                <span id="status-dot" class="status-dot"></span>
+                <span id="status-chip-text">Listo</span>
+                <span style="margin-left: 4px; opacity: 0.5;">·</span>
+                <span id="hotkey-pill" class="font-semibold" style="color: var(--accent);">...</span>
+            </div>
+
+            <!-- Status progress (hidden track, shown when processing) -->
+            <div id="status-progress-container" class="status-progress-track mb-4 hidden">
+                <div id="status-progress" class="status-progress-fill" style="width: 0%"></div>
+            </div>
+
+            <!-- Hero onboarding card (shown when no history) -->
+            <div id="hero-card" class="hero-card p-5 mb-5 hidden">
+                <h2 class="text-base font-semibold mb-1" style="color: #92400e;">Haz que Vox suene <em>como tu</em></h2>
+                <p class="text-sm mb-3" style="color: #b45309;">Personaliza tu estilo para mensajes, trabajo, emails y mas.</p>
+                <button onclick="openSettingsModal(); showSettingsTab('system')" class="btn-primary text-sm">
+                    Configurar ahora
+                </button>
             </div>
 
             <!-- History -->
-            <div class="flex items-center justify-between mb-3">
-                <h3 class="text-sm font-bold text-gray-300">Historial reciente</h3>
+            <div class="flex items-center justify-between mb-2">
+                <h3 style="color: var(--text-primary); font-size: 13px; font-weight: 600;">Historial reciente</h3>
             </div>
-            <div id="history-container" class="glass rounded-2xl overflow-hidden" style="max-height: calc(100vh - 340px); overflow-y: auto;">
-                <div id="history-empty" class="text-center py-12 text-gray-500 text-sm">
+            <div id="history-container" class="card overflow-hidden" style="max-height: calc(100vh - 300px); overflow-y: auto;">
+                <div id="history-empty" class="text-center py-12 text-sm" style="color: var(--text-muted);">
                     Aun no hay transcripciones.<br/>Presiona tu atajo para comenzar a dictar.
                 </div>
-                <div id="history-list" class="hidden divide-y divide-white/5"></div>
+                <div id="history-list"></div>
             </div>
         </div>
 
         <!-- ── VIEW: DICTIONARY ────────────────────────────── -->
-        <div id="view-dictionary" class="p-8 hidden">
-            <div class="flex items-center justify-between mb-1">
+        <div id="view-dictionary" class="p-6 hidden">
+            <div class="flex items-start justify-between mb-4">
                 <div>
-                    <h1 class="text-2xl font-bold text-gray-100">Diccionario</h1>
-                    <p class="text-sm text-gray-500">Personaliza como la IA transcribe tus terminos unicos.</p>
+                    <h1 style="color: var(--text-primary);">Diccionario</h1>
+                    <p class="mt-0.5 text-sm" style="color: var(--text-muted);">Personaliza como la IA transcribe tus terminos unicos.</p>
                 </div>
-                <button onclick="openTermModal()" class="btn btn-sm bg-vox-purple hover:bg-vox-purple/80 text-black font-bold rounded-lg border-none flex items-center gap-1">
-                    <span class="material-icons-round text-base">add</span> Nuevo Termino
+                <button onclick="openTermModal()" class="btn-primary flex items-center gap-1.5">
+                    <span class="material-icons-round" style="font-size:16px;">add</span> Nuevo Termino
                 </button>
             </div>
 
             <!-- Info card -->
-            <div class="card-dark rounded-2xl p-5 mt-4 mb-5 relative overflow-hidden">
-                <div class="flex items-start gap-4">
-                    <div class="bg-vox-purple/10 text-vox-purple p-3 rounded-2xl"><span class="material-icons-round">psychology</span></div>
-                    <div>
-                        <h3 class="text-base font-semibold mb-1">Entrenamiento de IA personalizado</h3>
-                        <p class="text-sm text-gray-400 max-w-2xl">Agrega nombres propios, acronimos tecnicos o jerga especifica. Vox Easy priorizara estas palabras para mejorar la precision de tus dictados.</p>
-                    </div>
+            <div class="card p-4 mb-4 flex items-start gap-3">
+                <div class="rounded-lg p-2 flex-shrink-0" style="background: var(--accent-light);">
+                    <span class="material-icons-round" style="font-size:18px; color: var(--accent);">psychology</span>
                 </div>
-                <div class="absolute -right-12 -top-12 w-48 h-48 bg-vox-purple/5 blur-3xl rounded-full"></div>
+                <div>
+                    <h3 class="text-sm font-semibold mb-0.5" style="color: var(--text-primary);">Entrenamiento de IA personalizado</h3>
+                    <p class="text-xs" style="color: var(--text-muted);">Agrega nombres propios, acronimos tecnicos o jerga especifica. Vox Easy priorizara estas palabras para mejorar la precision de tus dictados.</p>
+                </div>
             </div>
 
             <!-- Search -->
             <div class="relative w-full max-w-xs mb-4">
-                <span class="material-icons-round absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-lg">search</span>
-                <input id="dict-search" oninput="filterDictionary()" class="w-full bg-[#18181B] border border-white/5 rounded-xl py-2 pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-vox-purple/50" placeholder="Buscar palabras..." />
+                <span class="material-icons-round absolute left-2.5 top-1/2 -translate-y-1/2 text-sm" style="color: var(--text-muted);">search</span>
+                <input id="dict-search" oninput="filterDictionary()" class="input-base w-full" style="padding-left: 32px;" placeholder="Buscar palabras..." />
             </div>
 
             <!-- Table -->
-            <div class="card-dark rounded-2xl overflow-hidden">
+            <div class="card overflow-hidden">
                 <table class="w-full text-left">
                     <thead>
-                        <tr class="bg-white/[0.02] border-b border-white/5">
-                            <th class="px-5 py-3 text-xs font-semibold uppercase tracking-wider text-gray-500">Palabra Clave</th>
-                            <th class="px-5 py-3 text-xs font-semibold uppercase tracking-wider text-gray-500">Pronunciacion / Contexto</th>
-                            <th class="px-5 py-3 text-xs font-semibold uppercase tracking-wider text-gray-500">Ultimo uso</th>
-                            <th class="px-5 py-3 text-xs font-semibold uppercase tracking-wider text-gray-500 text-right">Acciones</th>
+                        <tr style="border-bottom: 1px solid var(--border); background: var(--bg-subtle);">
+                            <th class="px-4 py-2.5">Palabra Clave</th>
+                            <th class="px-4 py-2.5">Pronunciacion / Contexto</th>
+                            <th class="px-4 py-2.5">Ultimo uso</th>
+                            <th class="px-4 py-2.5 text-right">Acciones</th>
                         </tr>
                     </thead>
-                    <tbody id="dict-tbody" class="divide-y divide-white/5"></tbody>
+                    <tbody id="dict-tbody" style="divide-y: 1px solid var(--border);"></tbody>
                 </table>
-                <div id="dict-empty" class="text-center py-10 text-gray-500 text-sm hidden">
-                    <span class="material-icons-round text-4xl mb-2 block text-gray-600">book</span>
+                <div id="dict-empty" class="text-center py-10 text-sm hidden" style="color: var(--text-muted);">
+                    <span class="material-icons-round block mb-2" style="font-size:36px; opacity:0.3;">book</span>
                     No hay terminos aun. Agrega uno para mejorar tus dictados.
                 </div>
-                <div id="dict-pagination" class="px-5 py-3 bg-white/[0.02] border-t border-white/5 flex items-center justify-between hidden">
-                    <span id="dict-page-info" class="text-xs text-gray-500"></span>
-                    <div class="flex gap-2">
-                        <button onclick="dictPage(-1)" id="dict-prev" class="p-1 rounded-lg border border-white/5 hover:bg-white/5 disabled:opacity-30"><span class="material-icons-round text-sm">chevron_left</span></button>
-                        <button onclick="dictPage(1)" id="dict-next" class="p-1 rounded-lg border border-white/5 hover:bg-white/5 disabled:opacity-30"><span class="material-icons-round text-sm">chevron_right</span></button>
+                <div id="dict-pagination" class="px-4 py-2.5 flex items-center justify-between hidden" style="border-top: 1px solid var(--border); background: var(--bg-subtle);">
+                    <span id="dict-page-info" class="text-xs" style="color: var(--text-muted);"></span>
+                    <div class="flex gap-1.5">
+                        <button onclick="dictPage(-1)" id="dict-prev" class="btn-ghost p-1 rounded-lg disabled:opacity-30" style="padding: 4px 6px;"><span class="material-icons-round" style="font-size:16px;">chevron_left</span></button>
+                        <button onclick="dictPage(1)" id="dict-next" class="btn-ghost p-1 rounded-lg disabled:opacity-30" style="padding: 4px 6px;"><span class="material-icons-round" style="font-size:16px;">chevron_right</span></button>
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- ── VIEW: SNIPPETS ──────────────────────────────── -->
-        <div id="view-snippets" class="p-8 hidden">
-            <div class="flex items-center justify-between mb-1">
+        <div id="view-snippets" class="p-6 hidden">
+            <div class="flex items-start justify-between mb-4">
                 <div>
-                    <h1 class="text-2xl font-bold text-gray-100">Atajos de Texto</h1>
-                    <p class="text-sm text-gray-500">Di una frase corta y se expande al texto completo.</p>
+                    <h1 style="color: var(--text-primary);">Atajos de Texto</h1>
+                    <p class="mt-0.5 text-sm" style="color: var(--text-muted);">Di una frase corta y se expande al texto completo.</p>
                 </div>
-                <button onclick="openSnippetModal()" class="btn btn-sm bg-vox-purple hover:bg-vox-purple/80 text-black font-bold rounded-lg border-none flex items-center gap-1">
-                    <span class="material-icons-round text-base">add</span> Nuevo Atajo
+                <button onclick="openSnippetModal()" class="btn-primary flex items-center gap-1.5">
+                    <span class="material-icons-round" style="font-size:16px;">add</span> Nuevo Atajo
                 </button>
             </div>
 
             <!-- Info card -->
-            <div class="card-dark rounded-2xl p-5 mt-4 mb-5 relative overflow-hidden">
-                <div class="flex items-start gap-4">
-                    <div class="bg-vox-green/10 text-vox-green p-3 rounded-2xl"><span class="material-icons-round">bolt</span></div>
-                    <div>
-                        <h3 class="text-base font-semibold mb-1">Expansion automatica</h3>
-                        <p class="text-sm text-gray-400 max-w-2xl">Cuando dictes una frase que coincida con un atajo, Vox Easy la reemplazara automaticamente por el texto completo. Ideal para correos, firmas o frases repetitivas.</p>
-                    </div>
+            <div class="card p-4 mb-4 flex items-start gap-3">
+                <div class="rounded-lg p-2 flex-shrink-0" style="background: #dcfce7;">
+                    <span class="material-icons-round" style="font-size:18px; color: var(--success);">bolt</span>
+                </div>
+                <div>
+                    <h3 class="text-sm font-semibold mb-0.5" style="color: var(--text-primary);">Expansion automatica</h3>
+                    <p class="text-xs" style="color: var(--text-muted);">Cuando dictes una frase que coincida con un atajo, Vox Easy la reemplazara automaticamente por el texto completo. Ideal para correos, firmas o frases repetitivas.</p>
                 </div>
             </div>
 
             <!-- Search -->
             <div class="relative w-full max-w-xs mb-4">
-                <span class="material-icons-round absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-lg">search</span>
-                <input id="snippet-search" oninput="filterSnippets()" class="w-full bg-[#18181B] border border-white/5 rounded-xl py-2 pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-vox-purple/50" placeholder="Buscar atajos..." />
+                <span class="material-icons-round absolute left-2.5 top-1/2 -translate-y-1/2 text-sm" style="color: var(--text-muted);">search</span>
+                <input id="snippet-search" oninput="filterSnippets()" class="input-base w-full" style="padding-left: 32px;" placeholder="Buscar atajos..." />
             </div>
 
             <!-- List -->
             <div id="snippets-list" class="space-y-2"></div>
-            <div id="snippets-empty" class="text-center py-10 text-gray-500 text-sm hidden">
-                <span class="material-icons-round text-4xl mb-2 block text-gray-600">content_cut</span>
+            <div id="snippets-empty" class="text-center py-10 text-sm hidden" style="color: var(--text-muted);">
+                <span class="material-icons-round block mb-2" style="font-size:36px; opacity:0.3;">content_cut</span>
                 No hay atajos aun. Crea uno para agilizar tu dictado.
             </div>
         </div>
 
         <!-- ── VIEW: STYLE ─────────────────────────────────── -->
-        <div id="view-style" class="p-8 hidden">
-            <h1 class="text-2xl font-bold text-gray-100 mb-1">Estilo de Escritura</h1>
-            <p class="text-sm text-gray-500 mb-6">Configura como se formatea tu texto segun el contexto.</p>
+        <div id="view-style" class="p-6 hidden">
+            <h1 class="mb-0.5" style="color: var(--text-primary);">Estilo de Escritura</h1>
+            <p class="text-sm mb-5" style="color: var(--text-muted);">Configura como se formatea tu texto segun el contexto.</p>
 
             <!-- Tabs -->
-            <div class="flex gap-2 mb-6">
-                <button onclick="switchStyleTab('personal')" id="style-tab-personal" class="pill-btn active">Mensajes personales</button>
+            <div class="flex gap-1.5 mb-5">
+                <button onclick="switchStyleTab('personal')" id="style-tab-personal" class="pill-btn active">Personal</button>
                 <button onclick="switchStyleTab('work')" id="style-tab-work" class="pill-btn">Trabajo</button>
                 <button onclick="switchStyleTab('email')" id="style-tab-email" class="pill-btn">Email</button>
                 <button onclick="switchStyleTab('other')" id="style-tab-other" class="pill-btn">Otro</button>
             </div>
 
-            <div class="card-dark rounded-2xl p-6 space-y-6">
+            <div class="card p-5" style="display: flex; flex-direction: column; gap: 20px;">
                 <!-- Formality -->
                 <div>
-                    <label class="text-sm font-medium text-gray-300 block mb-3">Formalidad</label>
-                    <div class="flex gap-2">
+                    <label class="text-xs font-semibold uppercase tracking-wider block mb-2" style="color: var(--text-muted);">Formalidad</label>
+                    <div class="flex gap-1.5">
                         <button onclick="setStyleFormality('casual')" id="formality-casual" class="pill-btn active">Casual</button>
                         <button onclick="setStyleFormality('neutral')" id="formality-neutral" class="pill-btn">Neutral</button>
                         <button onclick="setStyleFormality('formal')" id="formality-formal" class="pill-btn">Formal</button>
@@ -375,16 +689,16 @@
                 <!-- Punctuation -->
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-sm font-medium text-gray-300">Puntuacion</p>
-                        <p class="text-xs text-gray-500">Incluir signos de puntuacion en el texto</p>
+                        <p class="text-sm font-medium" style="color: var(--text-primary);">Puntuacion</p>
+                        <p class="text-xs mt-0.5" style="color: var(--text-muted);">Incluir signos de puntuacion en el texto</p>
                     </div>
                     <label class="toggle-sw"><input type="checkbox" id="style-punctuation" checked onchange="onStyleChange()" /><span class="slider"></span></label>
                 </div>
 
                 <!-- Capitalization -->
                 <div>
-                    <label class="text-sm font-medium text-gray-300 block mb-2">Capitalizacion</label>
-                    <select id="style-capitalization" onchange="onStyleChange()" class="select select-sm bg-white/5 border-white/10 text-gray-200 w-48">
+                    <label class="text-xs font-semibold uppercase tracking-wider block mb-2" style="color: var(--text-muted);">Capitalizacion</label>
+                    <select id="style-capitalization" onchange="onStyleChange()" class="input-base" style="width: 200px;">
                         <option value="sentence">Oracion (default)</option>
                         <option value="uppercase">MAYUSCULAS</option>
                         <option value="lowercase">minusculas</option>
@@ -393,106 +707,106 @@
                 </div>
 
                 <!-- Active context indicator -->
-                <div class="flex items-center justify-between pt-2 border-t border-white/5">
-                    <span class="text-xs text-gray-500">Contexto activo: <strong id="style-active-label" class="text-vox-purple">personal</strong></span>
-                    <button onclick="setActiveStyleContext()" class="btn btn-xs bg-vox-purple/20 text-vox-purple border-none hover:bg-vox-purple/30">Usar este contexto</button>
+                <div class="flex items-center justify-between pt-4" style="border-top: 1px solid var(--border);">
+                    <span class="text-xs" style="color: var(--text-muted);">Contexto activo: <strong id="style-active-label" style="color: var(--accent);">personal</strong></span>
+                    <button onclick="setActiveStyleContext()" class="btn-ghost text-xs py-1 px-3" style="color: var(--accent); border-color: var(--accent-light);">Usar este contexto</button>
                 </div>
             </div>
 
             <!-- App Style Map -->
-            <h3 class="text-lg font-bold text-gray-100 mt-8 mb-1">Estilo automatico por app</h3>
-            <p class="text-sm text-gray-500 mb-4">El estilo cambia automaticamente segun la app donde dictas.</p>
-            <div class="card-dark rounded-2xl p-5">
-                <div id="app-style-map-list" class="space-y-2 mb-4"></div>
-                <div id="app-style-map-empty" class="text-xs text-gray-500 text-center py-3 hidden">No hay mapeos configurados.</div>
+            <h2 class="mt-7 mb-0.5" style="color: var(--text-primary); font-size: 15px;">Estilo automatico por app</h2>
+            <p class="text-sm mb-4" style="color: var(--text-muted);">El estilo cambia automaticamente segun la app donde dictas.</p>
+            <div class="card p-4">
+                <div id="app-style-map-list" class="space-y-1.5 mb-3"></div>
+                <div id="app-style-map-empty" class="text-xs text-center py-2 hidden" style="color: var(--text-muted);">No hay mapeos configurados.</div>
                 <div class="flex gap-2">
-                    <input type="text" id="app-style-bundle" placeholder="com.example.app" class="input input-sm flex-1 bg-white/5 border-white/10 focus:border-vox-purple text-xs font-mono" />
-                    <select id="app-style-context" class="select select-sm bg-white/5 border-white/10 text-gray-200 w-32">
+                    <input type="text" id="app-style-bundle" placeholder="com.example.app" class="input-base flex-1" style="font-family: monospace; font-size: 12px;" />
+                    <select id="app-style-context" class="input-base" style="width: 120px;">
                         <option value="personal">Personal</option>
                         <option value="work">Trabajo</option>
                         <option value="email">Email</option>
                         <option value="other">Otro</option>
                     </select>
-                    <button onclick="addAppStyleMapping()" class="btn btn-xs bg-vox-purple hover:bg-vox-purple/80 text-black font-bold rounded-lg border-none">Agregar</button>
+                    <button onclick="addAppStyleMapping()" class="btn-primary text-xs">Agregar</button>
                 </div>
             </div>
         </div>
 
         <!-- ── VIEW: NOTES ─────────────────────────────────── -->
-        <div id="view-notes" class="p-8 hidden">
-            <h1 class="text-2xl font-bold text-gray-100 mb-1">Notas Rapidas</h1>
-            <p class="text-sm text-gray-500 mb-6">Graba notas de voz o escribe rapidamente. No se escriben en otras apps.</p>
+        <div id="view-notes" class="p-6 hidden">
+            <h1 class="mb-0.5" style="color: var(--text-primary);">Notas Rapidas</h1>
+            <p class="text-sm mb-5" style="color: var(--text-muted);">Graba notas de voz o escribe rapidamente. No se escriben en otras apps.</p>
 
             <!-- Record + manual input -->
-            <div class="card-dark rounded-2xl p-5 mb-5">
-                <div class="flex items-center gap-4 mb-4">
-                    <button id="note-mic-btn" onclick="toggleNoteRecording()" class="w-14 h-14 rounded-full bg-vox-purple/20 text-vox-purple flex items-center justify-center hover:bg-vox-purple/30 transition-colors flex-shrink-0">
-                        <span class="material-icons-round text-2xl" id="note-mic-icon">mic</span>
+            <div class="card p-4 mb-4">
+                <div class="flex items-center gap-3 mb-3">
+                    <button id="note-mic-btn" onclick="toggleNoteRecording()" class="w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0 transition-colors" style="background: var(--accent-light); color: var(--accent); border: none; cursor: pointer;">
+                        <span class="material-icons-round" id="note-mic-icon">mic</span>
                     </button>
                     <div class="flex-1">
-                        <p id="note-rec-status" class="text-sm font-medium text-gray-300">Presiona para grabar una nota de voz</p>
-                        <p id="note-rec-sub" class="text-xs text-gray-500">Se transcribira y guardara automaticamente</p>
+                        <p id="note-rec-status" class="text-sm font-medium" style="color: var(--text-primary);">Presiona para grabar una nota de voz</p>
+                        <p id="note-rec-sub" class="text-xs mt-0.5" style="color: var(--text-muted);">Se transcribira y guardara automaticamente</p>
                     </div>
                 </div>
                 <div class="flex gap-2">
-                    <input type="text" id="note-text-input" placeholder="O escribe una nota aqui..." class="input input-sm flex-1 bg-white/5 border-white/10 focus:border-vox-purple text-sm" onkeydown="if(event.key==='Enter')addManualNote()" />
-                    <button onclick="addManualNote()" class="btn btn-sm bg-vox-purple hover:bg-vox-purple/80 text-black font-bold rounded-lg border-none">Guardar</button>
+                    <input type="text" id="note-text-input" placeholder="O escribe una nota aqui..." class="input-base flex-1" onkeydown="if(event.key==='Enter')addManualNote()" />
+                    <button onclick="addManualNote()" class="btn-primary">Guardar</button>
                 </div>
             </div>
 
             <!-- Search -->
             <div class="relative w-full max-w-xs mb-4">
-                <span class="material-icons-round absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-lg">search</span>
-                <input id="notes-search" oninput="filterNotes()" class="w-full bg-[#18181B] border border-white/5 rounded-xl py-2 pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-vox-purple/50" placeholder="Buscar notas..." />
+                <span class="material-icons-round absolute left-2.5 top-1/2 -translate-y-1/2 text-sm" style="color: var(--text-muted);">search</span>
+                <input id="notes-search" oninput="filterNotes()" class="input-base w-full" style="padding-left: 32px;" placeholder="Buscar notas..." />
             </div>
 
             <!-- Notes list -->
             <div id="notes-list" class="space-y-2"></div>
-            <div id="notes-empty" class="text-center py-10 text-gray-500 text-sm hidden">
-                <span class="material-icons-round text-4xl mb-2 block text-gray-600">description</span>
+            <div id="notes-empty" class="text-center py-10 text-sm hidden" style="color: var(--text-muted);">
+                <span class="material-icons-round block mb-2" style="font-size:36px; opacity:0.3;">description</span>
                 No hay notas aun. Graba o escribe tu primera nota.
             </div>
         </div>
 
         <!-- ── VIEW: ANALYTICS ───────────────────────────────── -->
-        <div id="view-analytics" class="p-8 hidden">
-            <h1 class="text-2xl font-bold text-gray-100 mb-1">Analiticas</h1>
-            <p class="text-sm text-gray-500 mb-6">Estadisticas de uso de tu dictado.</p>
+        <div id="view-analytics" class="p-6 hidden">
+            <h1 class="mb-0.5" style="color: var(--text-primary);">Analiticas</h1>
+            <p class="text-sm mb-5" style="color: var(--text-muted);">Estadisticas de uso de tu dictado.</p>
 
             <!-- Summary cards -->
-            <div class="grid grid-cols-3 gap-4 mb-6">
-                <div class="card-dark rounded-2xl p-5 text-center">
-                    <p class="text-3xl font-black gradient-text" id="analytics-total-words">0</p>
-                    <p class="text-xs text-gray-500 mt-1">Palabras totales (hoy)</p>
+            <div class="grid grid-cols-3 gap-3 mb-5">
+                <div class="card p-4 text-center">
+                    <p class="text-2xl font-bold mb-0.5" id="analytics-total-words" style="color: var(--accent);">0</p>
+                    <p class="text-xs" style="color: var(--text-muted);">Palabras hoy</p>
                 </div>
-                <div class="card-dark rounded-2xl p-5 text-center">
-                    <p class="text-3xl font-black text-vox-purple" id="analytics-total-apps">0</p>
-                    <p class="text-xs text-gray-500 mt-1">Apps utilizadas</p>
+                <div class="card p-4 text-center">
+                    <p class="text-2xl font-bold mb-0.5" id="analytics-total-apps" style="color: var(--text-primary);">0</p>
+                    <p class="text-xs" style="color: var(--text-muted);">Apps utilizadas</p>
                 </div>
-                <div class="card-dark rounded-2xl p-5 text-center">
-                    <p class="text-3xl font-black text-vox-green" id="analytics-peak-hour">--</p>
-                    <p class="text-xs text-gray-500 mt-1">Hora pico</p>
+                <div class="card p-4 text-center">
+                    <p class="text-2xl font-bold mb-0.5" id="analytics-peak-hour" style="color: var(--success);">--</p>
+                    <p class="text-xs" style="color: var(--text-muted);">Hora pico</p>
                 </div>
             </div>
 
             <!-- By app -->
-            <div class="card-dark rounded-2xl p-5 mb-4">
-                <h3 class="text-sm font-bold text-gray-300 mb-3">Palabras por aplicacion</h3>
+            <div class="card p-4 mb-3">
+                <h3 class="text-sm font-semibold mb-3" style="color: var(--text-primary);">Palabras por aplicacion</h3>
                 <div id="analytics-by-app" class="space-y-2"></div>
-                <div id="analytics-by-app-empty" class="text-xs text-gray-500 text-center py-4">Sin datos aun</div>
+                <div id="analytics-by-app-empty" class="text-xs text-center py-3" style="color: var(--text-muted);">Sin datos aun</div>
             </div>
 
             <!-- By hour -->
-            <div class="card-dark rounded-2xl p-5 mb-4">
-                <h3 class="text-sm font-bold text-gray-300 mb-3">Actividad por hora</h3>
-                <div id="analytics-by-hour" class="flex items-end gap-1 h-24"></div>
+            <div class="card p-4 mb-3">
+                <h3 class="text-sm font-semibold mb-3" style="color: var(--text-primary);">Actividad por hora</h3>
+                <div id="analytics-by-hour" class="flex items-end gap-0.5 h-20"></div>
             </div>
 
             <!-- Recent days -->
-            <div class="card-dark rounded-2xl p-5">
-                <h3 class="text-sm font-bold text-gray-300 mb-3">Ultimos 7 dias</h3>
-                <div id="analytics-by-date" class="space-y-1"></div>
-                <div id="analytics-by-date-empty" class="text-xs text-gray-500 text-center py-4">Sin datos aun</div>
+            <div class="card p-4">
+                <h3 class="text-sm font-semibold mb-3" style="color: var(--text-primary);">Ultimos 7 dias</h3>
+                <div id="analytics-by-date" class="space-y-2"></div>
+                <div id="analytics-by-date-empty" class="text-xs text-center py-3" style="color: var(--text-muted);">Sin datos aun</div>
             </div>
         </div>
 
@@ -503,20 +817,19 @@
      MODAL: Hotkey Capture
      ═══════════════════════════════════════════════════════════════ -->
 <div id="hotkey-modal" class="fixed inset-0 modal-overlay z-50 flex items-center justify-center hidden">
-    <div class="glass rounded-2xl p-6 w-[400px] glow-purple">
-        <h3 class="text-lg font-bold text-vox-purple text-center mb-1">Configurar Atajo</h3>
-        <div class="w-full h-px bg-white/10 mb-4"></div>
-        <p class="text-xs text-gray-500 text-center mb-1">Atajo actual</p>
+    <div class="modal-box p-6 w-[380px]">
+        <h3 class="text-base font-semibold text-center mb-4" style="color: var(--text-primary);">Configurar Atajo</h3>
+        <p class="text-xs text-center mb-1" style="color: var(--text-muted);">Atajo actual</p>
         <div class="flex justify-center mb-4">
-            <div class="bg-white/[0.05] border border-white/10 rounded-lg px-4 py-2">
-                <span id="modal-current-hotkey" class="text-sm font-bold text-vox-purple">...</span>
+            <div class="px-4 py-1.5 rounded-lg" style="background: var(--bg-subtle); border: 1px solid var(--border);">
+                <span id="modal-current-hotkey" class="text-sm font-bold" style="color: var(--accent);">...</span>
             </div>
         </div>
-        <p class="text-sm text-vox-green text-center mb-2">Presiona tu nuevo atajo...</p>
-        <div id="modal-new-hotkey" class="text-2xl font-bold text-gray-100 text-center py-3">&mdash;</div>
-        <div class="flex gap-3 mt-4">
-            <button id="modal-save-btn" onclick="handleSaveHotkey()" disabled class="btn btn-sm flex-1 bg-vox-purple hover:bg-vox-purple/80 text-black font-bold rounded-lg border-none disabled:opacity-40">Guardar</button>
-            <button onclick="handleCancelHotkey()" class="btn btn-sm flex-1 btn-outline rounded-lg text-gray-400 border-white/10 hover:border-white/20 font-medium">Cancelar</button>
+        <p class="text-sm text-center mb-2" style="color: var(--success);">Presiona tu nuevo atajo...</p>
+        <div id="modal-new-hotkey" class="text-2xl font-bold text-center py-3" style="color: var(--text-primary);">&mdash;</div>
+        <div class="flex gap-2 mt-4">
+            <button id="modal-save-btn" onclick="handleSaveHotkey()" disabled class="btn-primary flex-1 disabled:opacity-40">Guardar</button>
+            <button onclick="handleCancelHotkey()" class="btn-ghost flex-1">Cancelar</button>
         </div>
     </div>
 </div>
@@ -525,17 +838,17 @@
      MODAL: Term (add/edit)
      ═══════════════════════════════════════════════════════════════ -->
 <div id="term-modal" class="fixed inset-0 modal-overlay z-50 flex items-center justify-center hidden">
-    <div class="glass rounded-2xl p-6 w-[420px] glow-purple">
-        <h3 id="term-modal-title" class="text-lg font-bold text-vox-purple mb-4">Nuevo Termino</h3>
+    <div class="modal-box p-6 w-[420px]">
+        <h3 id="term-modal-title" class="text-base font-semibold mb-4" style="color: var(--text-primary);">Nuevo Termino</h3>
         <input type="hidden" id="term-edit-id" value="" />
         <div class="space-y-3">
-            <div><label class="text-xs text-gray-400 mb-1 block">Palabra clave *</label><input type="text" id="term-word" class="input input-sm w-full bg-white/5 border-white/10 focus:border-vox-purple" placeholder="Ej: Kubernetes" /></div>
-            <div><label class="text-xs text-gray-400 mb-1 block">Pronunciacion</label><input type="text" id="term-pronunciation" class="input input-sm w-full bg-white/5 border-white/10 focus:border-vox-purple" placeholder='Ej: "ku-ber-ne-tis"' /></div>
-            <div><label class="text-xs text-gray-400 mb-1 block">Contexto</label><input type="text" id="term-context" class="input input-sm w-full bg-white/5 border-white/10 focus:border-vox-purple" placeholder="Ej: Plataforma de orquestacion" /></div>
+            <div><label class="text-xs font-medium mb-1 block" style="color: var(--text-muted);">Palabra clave *</label><input type="text" id="term-word" class="input-base w-full" placeholder="Ej: Kubernetes" /></div>
+            <div><label class="text-xs font-medium mb-1 block" style="color: var(--text-muted);">Pronunciacion</label><input type="text" id="term-pronunciation" class="input-base w-full" placeholder='Ej: "ku-ber-ne-tis"' /></div>
+            <div><label class="text-xs font-medium mb-1 block" style="color: var(--text-muted);">Contexto</label><input type="text" id="term-context" class="input-base w-full" placeholder="Ej: Plataforma de orquestacion" /></div>
         </div>
-        <div class="flex gap-3 mt-5">
-            <button onclick="saveTerm()" class="btn btn-sm flex-1 bg-vox-purple hover:bg-vox-purple/80 text-black font-bold rounded-lg border-none">Guardar</button>
-            <button onclick="closeTermModal()" class="btn btn-sm flex-1 btn-outline rounded-lg text-gray-400 border-white/10 font-medium">Cancelar</button>
+        <div class="flex gap-2 mt-5">
+            <button onclick="saveTerm()" class="btn-primary flex-1">Guardar</button>
+            <button onclick="closeTermModal()" class="btn-ghost flex-1">Cancelar</button>
         </div>
     </div>
 </div>
@@ -544,16 +857,16 @@
      MODAL: Snippet (add/edit)
      ═══════════════════════════════════════════════════════════════ -->
 <div id="snippet-modal" class="fixed inset-0 modal-overlay z-50 flex items-center justify-center hidden">
-    <div class="glass rounded-2xl p-6 w-[440px] glow-purple">
-        <h3 id="snippet-modal-title" class="text-lg font-bold text-vox-purple mb-4">Nuevo Atajo</h3>
+    <div class="modal-box p-6 w-[440px]">
+        <h3 id="snippet-modal-title" class="text-base font-semibold mb-4" style="color: var(--text-primary);">Nuevo Atajo</h3>
         <input type="hidden" id="snippet-edit-id" value="" />
         <div class="space-y-3">
-            <div><label class="text-xs text-gray-400 mb-1 block">Frase trigger *</label><input type="text" id="snippet-trigger" class="input input-sm w-full bg-white/5 border-white/10 focus:border-vox-purple" placeholder='Ej: "mi correo"' /></div>
-            <div><label class="text-xs text-gray-400 mb-1 block">Texto de expansion *</label><textarea id="snippet-content" class="textarea textarea-sm w-full bg-white/5 border-white/10 focus:border-vox-purple h-28" placeholder="Ej: juanjo@gmail.com"></textarea></div>
+            <div><label class="text-xs font-medium mb-1 block" style="color: var(--text-muted);">Frase trigger *</label><input type="text" id="snippet-trigger" class="input-base w-full" placeholder='Ej: "mi correo"' /></div>
+            <div><label class="text-xs font-medium mb-1 block" style="color: var(--text-muted);">Texto de expansion *</label><textarea id="snippet-content" class="input-base w-full" style="height:100px; resize:vertical;" placeholder="Ej: juanjo@gmail.com"></textarea></div>
         </div>
-        <div class="flex gap-3 mt-5">
-            <button onclick="saveSnippet()" class="btn btn-sm flex-1 bg-vox-purple hover:bg-vox-purple/80 text-black font-bold rounded-lg border-none">Guardar</button>
-            <button onclick="closeSnippetModal()" class="btn btn-sm flex-1 btn-outline rounded-lg text-gray-400 border-white/10 font-medium">Cancelar</button>
+        <div class="flex gap-2 mt-5">
+            <button onclick="saveSnippet()" class="btn-primary flex-1">Guardar</button>
+            <button onclick="closeSnippetModal()" class="btn-ghost flex-1">Cancelar</button>
         </div>
     </div>
 </div>
@@ -562,55 +875,55 @@
      MODAL: Settings (7 tabs)
      ═══════════════════════════════════════════════════════════════ -->
 <div id="settings-modal" class="fixed inset-0 settings-modal-overlay z-50 flex items-center justify-center p-4 hidden">
-    <div class="settings-modal-bg w-full max-w-4xl h-[560px] rounded-2xl shadow-2xl overflow-hidden border border-white/10 flex">
+    <div class="settings-modal-bg w-full max-w-4xl h-[580px] rounded-2xl overflow-hidden flex" style="border: 1px solid var(--border); box-shadow: var(--shadow-lg);">
         <!-- Settings sidebar -->
-        <aside class="settings-sidebar-bg w-52 border-r border-white/5 p-4 flex flex-col">
-            <div class="mb-5 px-2 flex items-center gap-2">
-                <span class="text-vox-purple font-bold text-sm">Configuracion</span>
+        <aside class="settings-sidebar-bg w-[200px] flex-shrink-0 p-3 flex flex-col" style="border-right: 1px solid var(--border);">
+            <div class="mb-4 px-2 pt-1">
+                <span class="text-xs font-bold uppercase tracking-wider" style="color: var(--text-muted);">Configuracion</span>
             </div>
             <nav class="settings-nav space-y-0.5 flex-1">
-                <button onclick="showSettingsTab('general')" id="stab-general" class="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-400 s-active"><span class="material-icons-round text-lg">tune</span> General</button>
-                <button onclick="showSettingsTab('system')" id="stab-system" class="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-400"><span class="material-icons-round text-lg">monitor</span> Sistema</button>
-                <button onclick="showSettingsTab('shortcuts')" id="stab-shortcuts" class="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-400"><span class="material-icons-round text-lg">keyboard</span> Atajos</button>
-                <button onclick="showSettingsTab('account')" id="stab-account" class="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-400"><span class="material-icons-round text-lg">person_outline</span> Cuenta</button>
-                <button onclick="showSettingsTab('team')" id="stab-team" class="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-400"><span class="material-icons-round text-lg">group</span> Equipo</button>
-                <button onclick="showSettingsTab('plans')" id="stab-plans" class="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-400"><span class="material-icons-round text-lg">credit_card</span> Planes</button>
-                <button onclick="showSettingsTab('privacy')" id="stab-privacy" class="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-400"><span class="material-icons-round text-lg">lock</span> Privacidad</button>
+                <button onclick="showSettingsTab('general')" id="stab-general" class="nav-item s-active"><span class="material-icons-round">tune</span> General</button>
+                <button onclick="showSettingsTab('system')" id="stab-system" class="nav-item"><span class="material-icons-round">monitor</span> Sistema</button>
+                <button onclick="showSettingsTab('shortcuts')" id="stab-shortcuts" class="nav-item"><span class="material-icons-round">keyboard</span> Atajos</button>
+                <button onclick="showSettingsTab('account')" id="stab-account" class="nav-item"><span class="material-icons-round">person_outline</span> Cuenta</button>
+                <button onclick="showSettingsTab('team')" id="stab-team" class="nav-item"><span class="material-icons-round">group</span> Equipo</button>
+                <button onclick="showSettingsTab('plans')" id="stab-plans" class="nav-item"><span class="material-icons-round">credit_card</span> Planes</button>
+                <button onclick="showSettingsTab('privacy')" id="stab-privacy" class="nav-item"><span class="material-icons-round">lock</span> Privacidad</button>
             </nav>
-            <div class="mt-auto px-2"><span class="text-[10px] text-gray-600">v2.0.0 — Estable</span></div>
+            <div class="px-2 pb-1"><span class="text-[10px]" style="color: var(--text-muted);">v2.0.0 — Estable</span></div>
         </aside>
         <!-- Settings content -->
         <main class="flex-1 flex flex-col min-w-0 settings-modal-bg">
-            <header class="p-5 border-b border-white/5 flex justify-between items-center">
+            <header class="px-5 py-4 flex justify-between items-center" style="border-bottom: 1px solid var(--border);">
                 <div>
-                    <h3 id="settings-tab-title" class="text-lg font-semibold">General</h3>
-                    <p id="settings-tab-desc" class="text-xs text-gray-500">Administra las preferencias basicas.</p>
+                    <h3 id="settings-tab-title" class="text-base font-semibold" style="color: var(--text-primary);">General</h3>
+                    <p id="settings-tab-desc" class="text-xs mt-0.5" style="color: var(--text-muted);">Administra las preferencias basicas.</p>
                 </div>
-                <button onclick="closeSettingsModal()" class="text-gray-400 hover:text-gray-200 transition-colors"><span class="material-icons-round">close</span></button>
+                <button onclick="closeSettingsModal()" style="color: var(--text-muted); background: none; border: none; cursor: pointer;" onmouseover="this.style.color='var(--text-primary)'" onmouseout="this.style.color='var(--text-muted)'"><span class="material-icons-round">close</span></button>
             </header>
             <div class="flex-1 overflow-y-auto p-5 space-y-6" id="settings-content">
 
                 <!-- Tab: General -->
                 <div id="settings-general" class="settings-tab-content">
                     <section>
-                        <h4 class="text-xs font-bold uppercase tracking-wider text-gray-500 mb-4">Aplicacion</h4>
+                        <h4 class="text-xs font-bold uppercase tracking-wider mb-4" style="color: var(--text-muted);">Aplicacion</h4>
                         <div class="space-y-4">
                             <div class="flex items-center justify-between">
-                                <div><p class="text-sm font-medium">Abrir al iniciar sesion</p><p class="text-xs text-gray-500">Inicia Vox Easy automaticamente al encender tu Mac.</p></div>
+                                <div><p class="text-sm font-medium" style="color: var(--text-primary);">Abrir al iniciar sesion</p><p class="text-xs mt-0.5" style="color: var(--text-muted);">Inicia Vox Easy automaticamente al encender tu Mac.</p></div>
                                 <label class="toggle-sw"><input type="checkbox" id="set-launch-login" onchange="onSettingToggle('launch_at_login', this.checked)" /><span class="slider"></span></label>
                             </div>
                             <div class="flex items-center justify-between">
-                                <div><p class="text-sm font-medium">Actualizaciones automaticas</p><p class="text-xs text-gray-500">Manten la app siempre al dia.</p></div>
+                                <div><p class="text-sm font-medium" style="color: var(--text-primary);">Actualizaciones automaticas</p><p class="text-xs mt-0.5" style="color: var(--text-muted);">Manten la app siempre al dia.</p></div>
                                 <label class="toggle-sw"><input type="checkbox" id="set-auto-updates" checked onchange="onSettingToggle('auto_updates', this.checked)" /><span class="slider"></span></label>
                             </div>
                         </div>
                     </section>
                     <section>
-                        <h4 class="text-xs font-bold uppercase tracking-wider text-gray-500 mb-4">Localizacion</h4>
+                        <h4 class="text-xs font-bold uppercase tracking-wider mb-4" style="color: var(--text-muted);">Localizacion</h4>
                         <div class="space-y-4">
                             <div>
-                                <label class="text-sm font-medium block mb-1">Idioma de la interfaz</label>
-                                <select id="set-interface-language" class="select select-sm bg-white/5 border-white/10 text-gray-200 w-64">
+                                <label class="text-sm font-medium block mb-1" style="color: var(--text-primary);">Idioma de la interfaz</label>
+                                <select id="set-interface-language" class="input-base" style="width: 260px;">
                                     <option value="es">&#x1F1EA;&#x1F1F8;  Espa&#241;ol (Espa&#241;a)</option>
                                     <option value="es-MX">&#x1F1F2;&#x1F1FD;  Espa&#241;ol (M&#233;xico)</option>
                                     <option value="es-AR">&#x1F1E6;&#x1F1F7;  Espa&#241;ol (Argentina)</option>
@@ -646,7 +959,7 @@
                             </div>
                             <div>
                                 <label class="text-sm font-medium block mb-1">Idioma de dictado</label>
-                                <select id="set-language" onchange="handleLanguageChange()" class="select select-sm bg-white/5 border-white/10 text-gray-200 w-64">
+                                <select id="set-language" onchange="handleLanguageChange()" class="input-base" style="width:260px;">
                                     <option value="auto">&#x1F310;  Autodetectar</option>
                                     <option value="es">&#x1F1EA;&#x1F1F8;  Espa&#241;ol (Espa&#241;a)</option>
                                     <option value="es">&#x1F1F2;&#x1F1FD;  Espa&#241;ol (M&#233;xico)</option>
@@ -684,19 +997,19 @@
                         </div>
                     </section>
                     <section>
-                        <h4 class="text-xs font-bold uppercase tracking-wider text-gray-500 mb-4">Apariencia</h4>
+                        <h4 class="text-xs font-bold uppercase tracking-wider mb-4" style="color: var(--text-muted);">Apariencia</h4>
                         <div class="grid grid-cols-3 gap-3">
-                            <button onclick="setTheme('system')" id="theme-system" class="border-2 border-vox-purple bg-white/5 p-3 rounded-xl text-center"><div class="h-10 w-full bg-zinc-800 rounded mb-2 border border-white/10"></div><span class="text-xs font-medium">Sistema</span></button>
-                            <button onclick="setTheme('light')" id="theme-light" class="border border-white/10 hover:border-white/30 bg-zinc-900 p-3 rounded-xl text-center"><div class="h-10 w-full bg-white rounded mb-2 border border-gray-200"></div><span class="text-xs font-medium text-gray-400">Claro</span></button>
-                            <button onclick="setTheme('dark')" id="theme-dark" class="border border-white/10 hover:border-white/30 bg-zinc-900 p-3 rounded-xl text-center"><div class="h-10 w-full bg-zinc-950 rounded mb-2 border border-white/10"></div><span class="text-xs font-medium text-gray-400">Oscuro</span></button>
+                            <button onclick="setTheme('system')" id="theme-system" class="p-3 rounded-xl text-center cursor-pointer" style="border: 2px solid var(--accent); background: var(--bg-subtle); transition: border-color 0.15s;"><div class="h-9 w-full rounded mb-2" style="background: linear-gradient(135deg, #ffffff 50%, #111114 50%); border: 1px solid var(--border);"></div><span class="text-xs font-medium" style="color: var(--text-primary);">Sistema</span></button>
+                            <button onclick="setTheme('light')" id="theme-light" class="p-3 rounded-xl text-center cursor-pointer" style="border: 1px solid var(--border); background: var(--bg-subtle); transition: border-color 0.15s;"><div class="h-9 w-full rounded mb-2" style="background: #ffffff; border: 1px solid #e5e5e7;"></div><span class="text-xs font-medium" style="color: var(--text-muted);">Claro</span></button>
+                            <button onclick="setTheme('dark')" id="theme-dark" class="p-3 rounded-xl text-center cursor-pointer" style="border: 1px solid var(--border); background: var(--bg-subtle); transition: border-color 0.15s;"><div class="h-9 w-full rounded mb-2" style="background: #111114; border: 1px solid rgba(255,255,255,0.1);"></div><span class="text-xs font-medium" style="color: var(--text-muted);">Oscuro</span></button>
                         </div>
                     </section>
                     <section>
-                        <h4 class="text-xs font-bold uppercase tracking-wider text-gray-500 mb-4">Licencia</h4>
-                        <p class="text-xs text-gray-500 mb-3">Ingresa tu clave para activar Vox Easy Pro</p>
+                        <h4 class="text-xs font-bold uppercase tracking-wider mb-2" style="color: var(--text-muted);">Licencia</h4>
+                        <p class="text-xs mb-3" style="color: var(--text-muted);">Ingresa tu clave para activar Vox Easy Pro</p>
                         <div class="flex gap-2">
-                            <input type="text" id="license-input" placeholder="XXXX-XXXX-XXXX-XXXX" class="input input-sm flex-1 bg-white/5 border-white/10 focus:border-vox-purple font-mono" />
-                            <button id="license-btn" onclick="handleActivateLicense()" class="btn btn-sm bg-vox-purple hover:bg-vox-purple/80 text-black font-bold rounded-lg border-none">Activar</button>
+                            <input type="text" id="license-input" placeholder="XXXX-XXXX-XXXX-XXXX" class="input-base flex-1" style="font-family: monospace;" />
+                            <button id="license-btn" onclick="handleActivateLicense()" class="btn-primary">Activar</button>
                         </div>
                         <div id="license-status" class="text-sm mt-2 hidden"></div>
                     </section>
@@ -706,16 +1019,16 @@
                 <div id="settings-system" class="settings-tab-content hidden">
                     <div class="space-y-4">
                         <div class="flex items-center justify-between">
-                            <div><p class="text-sm font-medium">Efectos de sonido</p><p class="text-xs text-gray-500">Sonidos al iniciar/detener grabacion.</p></div>
+                            <div><p class="text-sm font-medium" style="color:var(--text-primary);">Efectos de sonido</p><p class="text-xs mt-0.5" style="color:var(--text-muted);">Sonidos al iniciar/detener grabacion.</p></div>
                             <label class="toggle-sw"><input type="checkbox" id="set-sounds" checked onchange="onSettingToggle('sound_effects', this.checked)" /><span class="slider"></span></label>
                         </div>
                         <div class="flex items-center justify-between">
-                            <div><p class="text-sm font-medium">Mostrar en el Dock</p><p class="text-xs text-gray-500">Muestra el icono de Vox Easy en el Dock de macOS.</p></div>
+                            <div><p class="text-sm font-medium" style="color:var(--text-primary);">Mostrar en el Dock</p><p class="text-xs mt-0.5" style="color:var(--text-muted);">Muestra el icono de Vox Easy en el Dock de macOS.</p></div>
                             <label class="toggle-sw"><input type="checkbox" id="set-show-dock" checked onchange="onSettingToggle('show_in_dock', this.checked)" /><span class="slider"></span></label>
                         </div>
                     </div>
 
-                    <h4 class="text-xs font-bold uppercase tracking-wider text-gray-500 mt-6 mb-4">Procesamiento de texto</h4>
+                    <h4 class="text-xs font-bold uppercase tracking-wider mt-6 mb-4" style="color:var(--text-muted);">Procesamiento de texto</h4>
                     <div class="space-y-4">
                         <div class="flex items-center justify-between">
                             <div><p class="text-sm font-medium">Eliminar muletillas</p><p class="text-xs text-gray-500">Remueve "este", "eh", "o sea", "um", "uh" automaticamente.</p></div>
@@ -724,6 +1037,18 @@
                         <div class="flex items-center justify-between">
                             <div><p class="text-sm font-medium">Dictado de puntuacion</p><p class="text-xs text-gray-500">Di "coma", "punto", "nueva linea" para insertar signos.</p></div>
                             <label class="toggle-sw"><input type="checkbox" id="set-punctuation-dictation" checked onchange="onSettingToggle('punctuation_dictation', this.checked)" /><span class="slider"></span></label>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <div><p class="text-sm font-medium">Puntuacion por pausas</p><p class="text-xs text-gray-500">Silencio largo → punto, silencio corto → coma. Requiere desactivar dictado de puntuacion.</p></div>
+                            <label class="toggle-sw"><input type="checkbox" id="set-pause-punctuation" onchange="onSettingToggle('pause_punctuation', this.checked)" /><span class="slider"></span></label>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <div><p class="text-sm font-medium">Modo Low-volume</p><p class="text-xs text-gray-500">Mayor sensibilidad del microfono para espacios silenciosos o reuniones.</p></div>
+                            <label class="toggle-sw"><input type="checkbox" id="set-low-volume-mode" onchange="onSettingToggle('low_volume_mode', this.checked)" /><span class="slider"></span></label>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <div><p class="text-sm font-medium">Formalidad con IA (Claude Haiku)</p><p class="text-xs text-gray-500">Reescribe el texto en el tono del contexto activo. Agrega ~400ms de latencia.</p></div>
+                            <label class="toggle-sw"><input type="checkbox" id="set-llm-formality" onchange="onSettingToggle('llm_formality', this.checked)" /><span class="slider"></span></label>
                         </div>
                     </div>
 
@@ -734,22 +1059,27 @@
                             <label class="toggle-sw"><input type="checkbox" id="set-dev-mode" onchange="onSettingToggle('dev_mode', this.checked)" /><span class="slider"></span></label>
                         </div>
                         <div>
-                            <p class="text-sm font-medium mb-1">Apps con modo dev automatico</p>
-                            <p class="text-xs text-gray-500 mb-3">El modo dev se activa al dictar en estas apps.</p>
+                            <p class="text-sm font-medium mb-1" style="color:var(--text-primary);">Apps con modo dev automatico</p>
+                            <p class="text-xs mb-3" style="color:var(--text-muted);">El modo dev se activa al dictar en estas apps.</p>
                             <div id="dev-mode-apps-list" class="space-y-1 mb-3"></div>
                             <div class="flex gap-2">
-                                <input type="text" id="dev-mode-app-input" placeholder="com.example.app" class="input input-sm flex-1 bg-white/5 border-white/10 focus:border-vox-purple text-xs font-mono" />
-                                <button onclick="addDevModeApp()" class="btn btn-xs bg-vox-purple hover:bg-vox-purple/80 text-black font-bold rounded-lg border-none">Agregar</button>
+                                <input type="text" id="dev-mode-app-input" placeholder="com.example.app" class="input-base flex-1" style="font-family:monospace; font-size:12px;" />
+                                <button onclick="addDevModeApp()" class="btn-primary text-xs py-1 px-3">Agregar</button>
                             </div>
                         </div>
-                        <div class="card-dark rounded-xl p-4">
-                            <p class="text-xs font-bold text-gray-400 mb-2">Vista previa de transformaciones</p>
-                            <div class="space-y-1 text-xs text-gray-300">
-                                <p><span class="text-vox-purple font-mono">"camel case mi variable"</span> &rarr; <span class="text-vox-green font-mono">miVariable</span></p>
-                                <p><span class="text-vox-purple font-mono">"snake case user count"</span> &rarr; <span class="text-vox-green font-mono">user_count</span></p>
-                                <p><span class="text-vox-purple font-mono">"pascal case data handler"</span> &rarr; <span class="text-vox-green font-mono">DataHandler</span></p>
-                                <p><span class="text-vox-purple font-mono">"upper case api key"</span> &rarr; <span class="text-vox-green font-mono">API_KEY</span></p>
-                                <p><span class="text-vox-purple font-mono">"llave abre llave cierra"</span> &rarr; <span class="text-vox-green font-mono">{}</span></p>
+                        <div class="flex items-center justify-between">
+                            <div><p class="text-sm font-medium" style="color:var(--text-primary);">@File tagging (Cursor/Windsurf)</p><p class="text-xs mt-0.5" style="color:var(--text-muted);">Convierte "el componente Login" en @app/Login.tsx automaticamente.</p></div>
+                            <label class="toggle-sw"><input type="checkbox" id="set-file-tagging" onchange="onSettingToggle('file_tagging', this.checked)" /><span class="slider"></span></label>
+                        </div>
+                        <div class="card p-4 rounded-xl">
+                            <p class="text-xs font-semibold mb-2" style="color:var(--text-muted);">Vista previa de transformaciones</p>
+                            <div class="space-y-1" style="font-size:12px;">
+                                <p><span style="color:var(--accent); font-family:monospace;">"camel case mi variable"</span> &rarr; <span style="color:var(--success); font-family:monospace;">miVariable</span></p>
+                                <p><span style="color:var(--accent); font-family:monospace;">"snake case user count"</span> &rarr; <span style="color:var(--success); font-family:monospace;">user_count</span></p>
+                                <p><span style="color:var(--accent); font-family:monospace;">"pascal case data handler"</span> &rarr; <span style="color:var(--success); font-family:monospace;">DataHandler</span></p>
+                                <p><span style="color:var(--accent); font-family:monospace;">"upper case api key"</span> &rarr; <span style="color:var(--success); font-family:monospace;">API_KEY</span></p>
+                                <p><span style="color:var(--accent); font-family:monospace;">"llave abre llave cierra"</span> &rarr; <span style="color:var(--success); font-family:monospace;">{}</span></p>
+                                <p><span style="color:var(--accent); font-family:monospace;">"el componente Header"</span> &rarr; <span style="color:var(--success); font-family:monospace;">@components/Header.tsx</span></p>
                             </div>
                         </div>
                     </div>
@@ -757,27 +1087,27 @@
 
                 <!-- Tab: Shortcuts -->
                 <div id="settings-shortcuts" class="settings-tab-content hidden">
-                    <div class="card-dark rounded-2xl p-5">
+                    <div class="card p-5">
                         <div class="flex items-center justify-between">
                             <div>
-                                <h3 class="font-bold text-gray-200 mb-1">Atajo de activacion</h3>
-                                <div id="settings-hotkey" class="text-lg font-bold text-vox-purple mb-1">...</div>
-                                <p class="text-xs text-gray-500">Este atajo activa el dictado en cualquier aplicacion</p>
+                                <h3 class="font-semibold mb-1" style="color:var(--text-primary);">Atajo de activacion</h3>
+                                <div id="settings-hotkey" class="text-xl font-bold mb-1" style="color:var(--accent);">...</div>
+                                <p class="text-xs" style="color:var(--text-muted);">Este atajo activa el dictado en cualquier aplicacion</p>
                             </div>
-                            <button onclick="handleStartHotkeyCapture()" class="btn btn-sm bg-vox-purple hover:bg-vox-purple/80 text-black font-bold rounded-lg border-none">Cambiar atajo</button>
+                            <button onclick="handleStartHotkeyCapture()" class="btn-primary">Cambiar atajo</button>
                         </div>
                     </div>
                 </div>
 
                 <!-- Tab: Account -->
                 <div id="settings-account" class="settings-tab-content hidden">
-                    <div class="flex items-center gap-5 mb-6">
-                        <img id="account-avatar" src="https://api.dicebear.com/7.x/adventurer/svg?seed=user" class="w-16 h-16 rounded-full bg-white/5 border-2 border-vox-purple/30" />
+                    <div class="flex items-center gap-4 mb-5">
+                        <img id="account-avatar" src="https://api.dicebear.com/7.x/adventurer/svg?seed=user" class="w-14 h-14 rounded-full flex-shrink-0" style="border: 2px solid var(--accent-light);" />
                         <div class="flex-1">
-                            <p id="account-email" class="text-sm text-gray-400">email@example.com</p>
+                            <p id="account-email" class="text-sm" style="color:var(--text-muted);">email@example.com</p>
                             <div class="mt-2">
-                                <label class="text-xs text-gray-500 block mb-1">Estilo de avatar</label>
-                                <select id="avatar-style-select" onchange="changeAvatarStyle()" class="select select-xs bg-white/5 border-white/10 text-gray-200">
+                                <label class="text-xs mb-1 block" style="color:var(--text-muted);">Estilo de avatar</label>
+                                <select id="avatar-style-select" onchange="changeAvatarStyle()" class="input-base" style="font-size:12px;">
                                     <option value="adventurer">Aventurero</option>
                                     <option value="avataaars">Avataaars</option>
                                     <option value="bottts">Robots</option>
@@ -789,101 +1119,98 @@
                             </div>
                         </div>
                     </div>
-                    <div class="grid grid-cols-2 gap-3 mb-6">
-                        <div><label class="text-xs text-gray-500 block mb-1">Nombre</label><input type="text" id="profile-fname" class="input input-sm w-full bg-white/5 border-white/10 focus:border-vox-purple" placeholder="Nombre" /></div>
-                        <div><label class="text-xs text-gray-500 block mb-1">Apellido</label><input type="text" id="profile-lname" class="input input-sm w-full bg-white/5 border-white/10 focus:border-vox-purple" placeholder="Apellido" /></div>
+                    <div class="grid grid-cols-2 gap-3 mb-5">
+                        <div><label class="text-xs block mb-1" style="color:var(--text-muted);">Nombre</label><input type="text" id="profile-fname" class="input-base w-full" placeholder="Nombre" /></div>
+                        <div><label class="text-xs block mb-1" style="color:var(--text-muted);">Apellido</label><input type="text" id="profile-lname" class="input-base w-full" placeholder="Apellido" /></div>
                     </div>
-                    <div class="border-t border-white/5 pt-4 space-y-3">
-                        <button onclick="handleLogout()" class="btn btn-sm btn-outline rounded-lg text-gray-400 border-white/10 hover:border-red-500/50 hover:text-red-400 w-full">Cerrar sesion</button>
-                        <button onclick="handleDeleteAccount()" class="btn btn-sm btn-outline rounded-lg text-red-400 border-red-500/20 hover:bg-red-500/10 w-full">Eliminar cuenta</button>
+                    <div class="pt-4 space-y-2.5" style="border-top: 1px solid var(--border);">
+                        <button onclick="handleLogout()" class="btn-ghost w-full" style="justify-content:center;">Cerrar sesion</button>
+                        <button onclick="handleDeleteAccount()" class="btn-ghost w-full" style="justify-content:center; color:var(--danger); border-color:rgba(220,38,38,0.3);">Eliminar cuenta</button>
                     </div>
                 </div>
 
                 <!-- Tab: Team -->
                 <div id="settings-team" class="settings-tab-content hidden">
-                    <div class="card-dark rounded-2xl p-5">
-                        <h3 class="font-semibold mb-2">Invitar al equipo</h3>
-                        <p class="text-sm text-gray-400 mb-4">Invita a miembros de tu equipo para compartir diccionarios y atajos.</p>
+                    <div class="card p-5">
+                        <h3 class="font-semibold mb-1" style="color:var(--text-primary);">Invitar al equipo</h3>
+                        <p class="text-sm mb-4" style="color:var(--text-muted);">Invita a miembros de tu equipo para compartir diccionarios y atajos.</p>
                         <div class="flex gap-2">
-                            <input type="email" id="team-invite-email" class="input input-sm flex-1 bg-white/5 border-white/10 focus:border-vox-purple" placeholder="email@empresa.com" />
-                            <button onclick="sendTeamInvite()" class="btn btn-sm bg-vox-purple hover:bg-vox-purple/80 text-black font-bold rounded-lg border-none">Enviar</button>
+                            <input type="email" id="team-invite-email" class="input-base flex-1" placeholder="email@empresa.com" />
+                            <button onclick="sendTeamInvite()" class="btn-primary">Enviar</button>
                         </div>
                     </div>
                 </div>
 
                 <!-- Tab: Plans -->
                 <div id="settings-plans" class="settings-tab-content hidden">
-                    <div class="grid grid-cols-3 gap-4">
+                    <div class="grid grid-cols-3 gap-3">
                         <!-- Free -->
-                        <div class="card-dark rounded-2xl flex flex-col">
-                            <div class="p-5 flex flex-col h-full">
-                                <div class="mb-4">
-                                    <div class="flex items-center gap-2 mb-3">
-                                        <h4 class="text-base font-bold">Basico</h4>
-                                        <span id="plan-badge-free" class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-white/10 text-gray-400">Plan actual</span>
+                        <div class="card flex flex-col">
+                            <div class="p-4 flex flex-col h-full">
+                                <div class="mb-3">
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <h4 class="text-sm font-bold" style="color:var(--text-primary);">Basico</h4>
+                                        <span id="plan-badge-free" class="text-[10px] font-semibold px-2 py-0.5 rounded-full" style="background:var(--bg-subtle); color:var(--text-muted);">Plan actual</span>
                                     </div>
                                     <div class="flex items-baseline gap-1">
-                                        <span class="text-3xl font-black">$0</span>
-                                        <span class="text-sm text-gray-500">/mes</span>
+                                        <span class="text-2xl font-black" style="color:var(--text-primary);">$0</span>
+                                        <span class="text-xs" style="color:var(--text-muted);">/mes</span>
                                     </div>
                                 </div>
-                                <div class="w-full h-px bg-white/5 mb-4"></div>
-                                <ul class="text-xs space-y-2.5 flex-1">
-                                    <li class="flex items-center gap-2"><span class="text-success">&#10003;</span> 3,000 palabras/semana</li>
-                                    <li class="flex items-center gap-2"><span class="text-success">&#10003;</span> Diccionario (10 terminos)</li>
-                                    <li class="flex items-center gap-2"><span class="text-success">&#10003;</span> 5 atajos de texto</li>
-                                    <li class="flex items-center gap-2"><span class="text-error opacity-50">&#10007;</span><span class="text-gray-500">Estilos avanzados</span></li>
-                                    <li class="flex items-center gap-2"><span class="text-error opacity-50">&#10007;</span><span class="text-gray-500">Soporte prioritario</span></li>
+                                <div class="h-px mb-3" style="background:var(--border);"></div>
+                                <ul class="text-xs space-y-2 flex-1" style="color:var(--text-primary);">
+                                    <li class="flex items-center gap-2"><span style="color:var(--success);">✓</span> 3,000 palabras/semana</li>
+                                    <li class="flex items-center gap-2"><span style="color:var(--success);">✓</span> Diccionario (10 terminos)</li>
+                                    <li class="flex items-center gap-2"><span style="color:var(--success);">✓</span> 5 atajos de texto</li>
+                                    <li class="flex items-center gap-2"><span style="color:var(--text-muted); opacity:0.5;">✗</span><span style="color:var(--text-muted);">Estilos avanzados</span></li>
+                                    <li class="flex items-center gap-2"><span style="color:var(--text-muted); opacity:0.5;">✗</span><span style="color:var(--text-muted);">Soporte prioritario</span></li>
                                 </ul>
-                                <button class="btn btn-sm w-full rounded-xl bg-white/5 text-gray-500 border-none mt-4" disabled>Plan actual</button>
+                                <button class="btn-ghost w-full mt-4" style="justify-content:center;" disabled>Plan actual</button>
                             </div>
                         </div>
                         <!-- Pro (highlighted) -->
-                        <div class="card-dark rounded-2xl flex flex-col border-2 !border-vox-purple/60 relative overflow-hidden">
-                            <div class="absolute inset-0 bg-gradient-to-br from-purple-500/[0.06] to-teal-500/[0.06] pointer-events-none"></div>
-                            <div class="p-5 flex flex-col h-full relative">
-                                <div class="mb-4">
-                                    <div class="flex items-center gap-2 mb-3">
-                                        <h4 class="text-base font-bold">Pro</h4>
-                                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-vox-purple/20 text-vox-purple">Popular</span>
+                        <div class="card flex flex-col" style="border-color: var(--accent); border-width: 2px;">
+                            <div class="p-4 flex flex-col h-full">
+                                <div class="mb-3">
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <h4 class="text-sm font-bold" style="color:var(--text-primary);">Pro</h4>
+                                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full" style="background:var(--accent-light); color:var(--accent);">Popular</span>
                                     </div>
                                     <div class="flex items-baseline gap-1">
-                                        <span class="text-3xl font-black text-vox-green">$2.99</span>
-                                        <span class="text-sm text-gray-500">/mes</span>
+                                        <span class="text-2xl font-black" style="color:var(--accent);">$2.99</span>
+                                        <span class="text-xs" style="color:var(--text-muted);">/mes</span>
                                     </div>
-                                    <p class="text-xs text-gray-400 mt-1">o <strong class="text-vox-green">$19.99</strong>/año <span class="text-gray-500">(ahorra 44%)</span></p>
+                                    <p class="text-xs mt-1" style="color:var(--text-muted);">o <strong style="color:var(--success);">$19.99</strong>/año <span>(ahorra 44%)</span></p>
                                 </div>
-                                <div class="w-full h-px bg-vox-purple/20 mb-4"></div>
-                                <ul class="text-xs space-y-2.5 flex-1">
-                                    <li class="flex items-center gap-2"><span class="text-success">&#10003;</span> Palabras ilimitadas</li>
-                                    <li class="flex items-center gap-2"><span class="text-success">&#10003;</span> Diccionario ilimitado</li>
-                                    <li class="flex items-center gap-2"><span class="text-success">&#10003;</span> Atajos ilimitados</li>
-                                    <li class="flex items-center gap-2"><span class="text-success">&#10003;</span> Estilos avanzados</li>
-                                    <li class="flex items-center gap-2"><span class="text-success">&#10003;</span> Soporte prioritario</li>
+                                <div class="h-px mb-3" style="background:var(--accent-light);"></div>
+                                <ul class="text-xs space-y-2 flex-1" style="color:var(--text-primary);">
+                                    <li class="flex items-center gap-2"><span style="color:var(--success);">✓</span> Palabras ilimitadas</li>
+                                    <li class="flex items-center gap-2"><span style="color:var(--success);">✓</span> Diccionario ilimitado</li>
+                                    <li class="flex items-center gap-2"><span style="color:var(--success);">✓</span> Atajos ilimitados</li>
+                                    <li class="flex items-center gap-2"><span style="color:var(--success);">✓</span> Estilos avanzados</li>
+                                    <li class="flex items-center gap-2"><span style="color:var(--success);">✓</span> Soporte prioritario</li>
                                 </ul>
-                                <button onclick="handleUpgrade()" class="btn btn-sm btn-gradient w-full rounded-xl font-bold mt-4">Actualizar a Pro</button>
+                                <button onclick="handleUpgrade()" class="btn-primary w-full mt-4" style="justify-content:center;">Actualizar a Pro</button>
                             </div>
                         </div>
                         <!-- Enterprise -->
-                        <div class="card-dark rounded-2xl flex flex-col">
-                            <div class="p-5 flex flex-col h-full">
-                                <div class="mb-4">
-                                    <div class="flex items-center gap-2 mb-3">
-                                        <h4 class="text-base font-bold">Enterprise</h4>
-                                    </div>
+                        <div class="card flex flex-col">
+                            <div class="p-4 flex flex-col h-full">
+                                <div class="mb-3">
+                                    <h4 class="text-sm font-bold mb-2" style="color:var(--text-primary);">Enterprise</h4>
                                     <div class="flex items-baseline gap-1">
-                                        <span class="text-2xl font-black text-gray-300">Personalizado</span>
+                                        <span class="text-lg font-black" style="color:var(--text-primary);">Personalizado</span>
                                     </div>
                                 </div>
-                                <div class="w-full h-px bg-white/5 mb-4"></div>
-                                <ul class="text-xs space-y-2.5 flex-1">
-                                    <li class="flex items-center gap-2"><span class="text-success">&#10003;</span> Todo de Pro</li>
-                                    <li class="flex items-center gap-2"><span class="text-success">&#10003;</span> Equipos ilimitados</li>
-                                    <li class="flex items-center gap-2"><span class="text-success">&#10003;</span> SSO / SAML</li>
-                                    <li class="flex items-center gap-2"><span class="text-success">&#10003;</span> Soporte dedicado</li>
-                                    <li class="flex items-center gap-2"><span class="text-success">&#10003;</span> SLA personalizado</li>
+                                <div class="h-px mb-3" style="background:var(--border);"></div>
+                                <ul class="text-xs space-y-2 flex-1" style="color:var(--text-primary);">
+                                    <li class="flex items-center gap-2"><span style="color:var(--success);">✓</span> Todo de Pro</li>
+                                    <li class="flex items-center gap-2"><span style="color:var(--success);">✓</span> Equipos ilimitados</li>
+                                    <li class="flex items-center gap-2"><span style="color:var(--success);">✓</span> SSO / SAML</li>
+                                    <li class="flex items-center gap-2"><span style="color:var(--success);">✓</span> Soporte dedicado</li>
+                                    <li class="flex items-center gap-2"><span style="color:var(--success);">✓</span> SLA personalizado</li>
                                 </ul>
-                                <button onclick="api.open_website()" class="btn btn-sm w-full rounded-xl bg-white/5 text-gray-400 border border-white/10 mt-4">Contactar ventas</button>
+                                <button onclick="api.open_website()" class="btn-ghost w-full mt-4" style="justify-content:center;">Contactar ventas</button>
                             </div>
                         </div>
                     </div>
@@ -894,22 +1221,31 @@
                     <div class="space-y-5">
                         <div class="flex items-center justify-between">
                             <div>
-                                <p class="text-sm font-medium">Modo privacidad</p>
-                                <p class="text-xs text-gray-500">No guardar historial de dictados en disco.</p>
+                                <p class="text-sm font-medium" style="color:var(--text-primary);">Modo privacidad</p>
+                                <p class="text-xs mt-0.5" style="color:var(--text-muted);">No guardar historial de dictados en disco.</p>
                             </div>
                             <label class="toggle-sw"><input type="checkbox" id="set-privacy" onchange="onSettingToggle('privacy_mode', this.checked)" /><span class="slider"></span></label>
                         </div>
-                        <div class="border-t border-white/5 pt-4 space-y-3">
-                            <button onclick="handleClearHistory()" class="btn btn-sm btn-outline rounded-lg text-yellow-400 border-yellow-500/20 hover:bg-yellow-500/10 w-full">Eliminar historial</button>
-                            <button onclick="handleDeleteAllData()" class="btn btn-sm btn-outline rounded-lg text-red-400 border-red-500/20 hover:bg-red-500/10 w-full">Eliminar todos los datos</button>
+                        <div class="pt-4" style="border-top: 1px solid var(--border);">
+                            <p class="text-sm font-medium mb-0.5" style="color:var(--text-primary);">Sync iCloud Drive</p>
+                            <p class="text-xs mb-3" style="color:var(--text-muted);">Sincroniza diccionario, snippets y ajustes entre tus Macs via iCloud Drive.</p>
+                            <div class="flex gap-2">
+                                <button onclick="handleSyncToiCloud()" class="btn-ghost flex-1 text-xs" style="justify-content:center;">☁ Subir a iCloud</button>
+                                <button onclick="handleSyncFromiCloud()" class="btn-ghost flex-1 text-xs" style="justify-content:center;">↓ Restaurar de iCloud</button>
+                            </div>
+                            <p id="icloud-sync-status" class="text-xs mt-2 hidden" style="color:var(--text-muted);"></p>
+                        </div>
+                        <div class="pt-4 space-y-2.5" style="border-top: 1px solid var(--border);">
+                            <button onclick="handleClearHistory()" class="btn-ghost w-full" style="justify-content:center; color:#d97706; border-color:rgba(217,119,6,0.3);">Eliminar historial</button>
+                            <button onclick="handleDeleteAllData()" class="btn-ghost w-full" style="justify-content:center; color:var(--danger); border-color:rgba(220,38,38,0.3);">Eliminar todos los datos</button>
                         </div>
                     </div>
                 </div>
 
             </div>
-            <footer class="p-4 bg-white/[0.02] border-t border-white/5 flex justify-end gap-3">
-                <button onclick="closeSettingsModal()" class="px-4 py-2 text-sm font-medium text-gray-400 hover:bg-white/5 rounded-lg transition-colors">Cancelar</button>
-                <button onclick="saveSettings()" class="px-4 py-2 text-sm font-medium bg-vox-purple text-white hover:bg-vox-purple/80 rounded-lg shadow-lg shadow-vox-purple/20 transition-all">Guardar cambios</button>
+            <footer class="px-5 py-3 flex justify-end gap-2" style="border-top: 1px solid var(--border); background: var(--bg-subtle);">
+                <button onclick="closeSettingsModal()" class="btn-ghost">Cancelar</button>
+                <button onclick="saveSettings()" class="btn-primary">Guardar cambios</button>
             </footer>
         </main>
     </div>
@@ -919,13 +1255,13 @@
      MODAL: Word Limit Reached
      ═══════════════════════════════════════════════════════════════ -->
 <div id="word-limit-modal" class="fixed inset-0 settings-modal-overlay z-[60] flex items-center justify-center p-4 hidden">
-    <div class="glass rounded-2xl p-8 w-[420px] glow-purple text-center">
-        <div class="text-5xl mb-4">&#x1F6AB;</div>
-        <h3 class="text-xl font-bold text-gray-100 mb-2">Limite semanal alcanzado</h3>
-        <p class="text-sm text-gray-400 mb-2">Has alcanzado tu limite semanal de <strong class="text-gray-200">3,000 palabras</strong>.</p>
-        <p class="text-sm text-gray-400 mb-6">Actualiza a <strong class="text-vox-green">Pro</strong> para dictado ilimitado.</p>
-        <button onclick="handleUpgrade(); document.getElementById('word-limit-modal').classList.add('hidden');" class="btn btn-gradient w-full rounded-full font-bold text-base mb-3">Actualizar a Pro</button>
-        <button onclick="document.getElementById('word-limit-modal').classList.add('hidden')" class="btn btn-sm btn-ghost text-gray-500 w-full">Cerrar</button>
+    <div class="modal-box p-8 w-[400px] text-center">
+        <div class="text-5xl mb-4">🚫</div>
+        <h3 class="text-lg font-semibold mb-2" style="color:var(--text-primary);">Limite semanal alcanzado</h3>
+        <p class="text-sm mb-1" style="color:var(--text-muted);">Has alcanzado tu limite semanal de <strong style="color:var(--text-primary);">3,000 palabras</strong>.</p>
+        <p class="text-sm mb-6" style="color:var(--text-muted);">Actualiza a <strong style="color:var(--success);">Pro</strong> para dictado ilimitado.</p>
+        <button onclick="handleUpgrade(); document.getElementById('word-limit-modal').classList.add('hidden');" class="btn-primary w-full mb-3" style="justify-content:center;">Actualizar a Pro</button>
+        <button onclick="document.getElementById('word-limit-modal').classList.add('hidden')" class="btn-ghost w-full" style="justify-content:center; color:var(--text-muted);">Cerrar</button>
     </div>
 </div>
 
@@ -952,10 +1288,19 @@
     function showLoginTab(tab) {
         document.getElementById('form-login').classList.toggle('hidden', tab !== 'login');
         document.getElementById('form-register').classList.toggle('hidden', tab !== 'register');
-        document.getElementById('tab-login').classList.toggle('tab-active', tab === 'login');
-        document.getElementById('tab-register').classList.toggle('tab-active', tab === 'register');
         document.getElementById('login-error').classList.add('hidden');
         document.getElementById('register-error').classList.add('hidden');
+        // Update tab button styles
+        const loginBtn = document.getElementById('tab-login');
+        const regBtn = document.getElementById('tab-register');
+        if (loginBtn && regBtn) {
+            loginBtn.style.cssText = tab === 'login'
+                ? 'background:var(--bg); color:var(--text-primary); box-shadow:var(--shadow-sm); border:1px solid var(--border); flex:1; padding:6px; border-radius:6px; font-size:13px; font-weight:600; cursor:pointer; transition:all 0.15s;'
+                : 'background:transparent; color:var(--text-muted); border:none; flex:1; padding:6px; border-radius:6px; font-size:13px; cursor:pointer; transition:all 0.15s;';
+            regBtn.style.cssText = tab === 'register'
+                ? 'background:var(--bg); color:var(--text-primary); box-shadow:var(--shadow-sm); border:1px solid var(--border); flex:1; padding:6px; border-radius:6px; font-size:13px; font-weight:600; cursor:pointer; transition:all 0.15s;'
+                : 'background:transparent; color:var(--text-muted); border:none; flex:1; padding:6px; border-radius:6px; font-size:13px; cursor:pointer; transition:all 0.15s;';
+        }
     }
 
     async function handleLogin(e) {
@@ -1054,9 +1399,13 @@
                 document.getElementById('sidebar-words').textContent = 'Uso ilimitado';
                 document.getElementById('sidebar-usage-bar').style.width = '0%';
             } else {
-                document.getElementById('sidebar-words').textContent = 'Usadas ' + used.toLocaleString() + ' de ' + limit.toLocaleString();
+                document.getElementById('sidebar-words').textContent = used.toLocaleString() + ' de ' + limit.toLocaleString() + ' palabras';
                 document.getElementById('sidebar-usage-bar').style.width = Math.min(100, (used / Math.max(1, limit)) * 100) + '%';
             }
+            // Pro badge in sidebar header
+            const proBadge = document.querySelector('.app-sidebar .text-\\[10px\\]');
+            if (proBadge) proBadge.textContent = plan === 'pro' ? 'Pro' : 'Free';
+
             // Update sidebar avatar + account tab
             if (info.email) {
                 document.getElementById('account-email').textContent = info.email;
@@ -1064,6 +1413,16 @@
             }
             if (info.name) {
                 document.getElementById('sidebar-username').textContent = info.name;
+                updateGreeting(info.name.split(' ')[0]);
+            }
+
+            // Update stats
+            const statWords = document.getElementById('stat-words-today');
+            if (statWords) {
+                const today = new Date().toISOString().slice(0, 10);
+                if (info.analytics && info.analytics.by_date) {
+                    statWords.textContent = (info.analytics.by_date[today] || 0).toLocaleString();
+                }
             }
         } catch {}
     }
@@ -1080,50 +1439,107 @@
 
     // ── Status updates (called from Python) ──────────────────────
     function updateStatus(state, text, subtitle) {
-        const iconEl = document.getElementById('status-icon');
-        const titleEl = document.getElementById('status-title');
-        const subtitleEl = document.getElementById('status-subtitle');
+        const chipText = document.getElementById('status-chip-text');
+        const dot = document.getElementById('status-dot');
         const progressEl = document.getElementById('status-progress');
-        titleEl.textContent = text;
-        subtitleEl.textContent = subtitle || '';
-        const states = {
-            recording: ['&#x1f534;', true, 'text-lg font-bold text-vox-green', '100%', true],
-            processing: ['&#x231b;', false, 'text-lg font-bold text-vox-purple', '100%', false],
-            done: ['&#x2705;', false, 'text-lg font-bold text-vox-green', '0%', false],
-            error: ['&#x274c;', false, 'text-lg font-bold text-red-400', '0%', false],
-            warning: ['&#x26a0;&#xfe0f;', false, 'text-lg font-bold text-yellow-400', '0%', false],
-        };
-        const s = states[state] || ['&#x1f399;', false, 'text-lg font-bold text-gray-100', '0%', false];
-        iconEl.innerHTML = s[0];
-        iconEl.classList.toggle('recording-pulse', s[1]);
-        titleEl.className = s[2];
-        progressEl.style.width = s[3];
-        progressEl.classList.toggle('recording-pulse', s[4]);
+        const progressContainer = document.getElementById('status-progress-container');
+
+        if (chipText) chipText.textContent = text;
+
+        // Remove all dot state classes
+        if (dot) {
+            dot.className = 'status-dot';
+            if (state === 'recording') dot.classList.add('recording');
+            else if (state === 'processing') dot.classList.add('processing');
+            else if (state === 'done') dot.classList.add('done');
+            else if (state === 'error') dot.classList.add('error');
+        }
+
+        // Progress bar
+        if (progressContainer && progressEl) {
+            if (state === 'recording' || state === 'processing') {
+                progressContainer.classList.remove('hidden');
+                progressEl.style.width = state === 'recording' ? '100%' : '80%';
+                progressEl.classList.toggle('recording', state === 'recording');
+            } else {
+                progressContainer.classList.add('hidden');
+                progressEl.style.width = '0%';
+                progressEl.classList.remove('recording');
+            }
+        }
     }
 
     function updateHistory(entries) {
         const emptyEl = document.getElementById('history-empty');
         const listEl = document.getElementById('history-list');
-        if (!entries || entries.length === 0) { emptyEl.classList.remove('hidden'); listEl.classList.add('hidden'); listEl.innerHTML = ''; return; }
-        emptyEl.classList.add('hidden'); listEl.classList.remove('hidden'); listEl.innerHTML = '';
-        entries.forEach(entry => {
-            const row = document.createElement('div');
-            row.className = 'history-item flex items-center gap-3 px-5 py-4 transition-colors group';
-            const timeSpan = document.createElement('span');
-            timeSpan.className = 'text-xs text-gray-500 font-mono w-20 flex-shrink-0';
-            timeSpan.textContent = entry.time;
-            const textSpan = document.createElement('span');
-            textSpan.className = 'text-sm text-gray-300 leading-relaxed flex-1';
-            textSpan.textContent = entry.text;
-            const copyBtn = document.createElement('button');
-            copyBtn.className = 'copy-btn text-gray-500 hover:text-vox-purple transition-colors';
-            copyBtn.innerHTML = '<span class="material-icons-round text-lg">content_copy</span>';
-            copyBtn.addEventListener('click', () => copyText(entry.text));
-            row.appendChild(timeSpan);
-            row.appendChild(textSpan);
-            row.appendChild(copyBtn);
-            listEl.appendChild(row);
+        const heroCard = document.getElementById('hero-card');
+
+        if (!entries || entries.length === 0) {
+            emptyEl.classList.remove('hidden');
+            listEl.innerHTML = '';
+            if (heroCard) heroCard.classList.remove('hidden');
+            return;
+        }
+        emptyEl.classList.add('hidden');
+        if (heroCard) heroCard.classList.add('hidden');
+        listEl.innerHTML = '';
+
+        // Group entries by date
+        const groups = {};
+        entries.forEach(e => {
+            const key = e.date || 'Hoy';
+            if (!groups[key]) groups[key] = [];
+            groups[key].push(e);
         });
+
+        let allItems = [];
+        Object.entries(groups).forEach(([date, items]) => {
+            // Date header
+            const dateHeader = document.createElement('div');
+            dateHeader.className = 'history-date-header';
+            dateHeader.textContent = formatHistoryDate(date);
+            listEl.appendChild(dateHeader);
+
+            items.forEach((entry, relIdx) => {
+                const row = document.createElement('div');
+                row.className = 'history-item group';
+
+                const timeSpan = document.createElement('span');
+                timeSpan.style.cssText = 'font-size:11px; color:var(--text-muted); font-variant-numeric:tabular-nums; width:48px; flex-shrink:0;';
+                timeSpan.textContent = entry.time || '';
+
+                const textSpan = document.createElement('span');
+                textSpan.className = 'history-text flex-1';
+                textSpan.style.cssText = 'font-size:13px; color:var(--text-primary); line-height:1.5; cursor:text;';
+                textSpan.title = 'Doble clic para editar y auto-aprender';
+                textSpan.textContent = entry.text;
+
+                const copyBtn = document.createElement('button');
+                copyBtn.className = 'copy-btn';
+                copyBtn.innerHTML = '<span class="material-icons-round" style="font-size:16px;">content_copy</span>';
+                copyBtn.addEventListener('click', () => copyText(entry.text));
+
+                row.appendChild(timeSpan);
+                row.appendChild(textSpan);
+                row.appendChild(copyBtn);
+                listEl.appendChild(row);
+                allItems.push({ el: textSpan, entry, absIdx: allItems.length });
+            });
+        });
+
+        enableHistoryEditing(listEl);
+    }
+
+    function formatHistoryDate(dateStr) {
+        if (!dateStr) return 'Hoy';
+        const today = new Date().toISOString().slice(0, 10);
+        const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+        if (dateStr === today) return 'Hoy';
+        if (dateStr === yesterday) return 'Ayer';
+        try {
+            const d = new Date(dateStr);
+            return d.toLocaleDateString('es', { weekday: 'long', day: 'numeric', month: 'long' });
+        } catch { return dateStr; }
     }
 
     function updatePlan(plan, used, limit) {
@@ -1136,14 +1552,12 @@
         const pct = Math.min(100, (count / Math.max(1, limit)) * 100);
         const bar = document.getElementById('sidebar-usage-bar');
         const text = document.getElementById('sidebar-words');
-        if (text) text.textContent = 'Usadas ' + count.toLocaleString() + ' de ' + limit.toLocaleString();
+        if (text) text.textContent = count.toLocaleString() + ' de ' + limit.toLocaleString() + ' palabras';
         if (bar) {
             bar.style.width = pct + '%';
-            // Color: green < 60%, yellow 60-85%, red > 85%
-            bar.classList.remove('progress-gradient');
             if (pct > 85) { bar.style.background = '#ef4444'; }
-            else if (pct > 60) { bar.style.background = '#eab308'; }
-            else { bar.style.background = ''; bar.classList.add('progress-gradient'); }
+            else if (pct > 60) { bar.style.background = '#f59e0b'; }
+            else { bar.style.background = 'var(--accent)'; }
         }
     }
 
@@ -1186,14 +1600,15 @@
 
         page.forEach(t => {
             const tr = document.createElement('tr');
-            tr.className = 'table-row hover:bg-white/[0.01] transition-colors';
+            tr.className = 'table-row';
+            tr.style.borderBottom = '1px solid var(--border)';
             tr.innerHTML = `
-                <td class="px-5 py-3"><span class="font-semibold text-vox-purple">${escapeHtml(t.word)}</span></td>
-                <td class="px-5 py-3 text-sm text-gray-400 italic">${escapeHtml(t.pronunciation || t.context || '—')}</td>
-                <td class="px-5 py-3 text-sm text-gray-500">${t.last_used || '—'}</td>
-                <td class="px-5 py-3 text-right row-actions">
-                    <button onclick="editTerm('${t.id}')" class="p-1 text-gray-400 hover:text-vox-purple"><span class="material-icons-round text-lg">edit</span></button>
-                    <button onclick="deleteTerm('${t.id}')" class="p-1 text-gray-400 hover:text-red-400 ml-1"><span class="material-icons-round text-lg">delete</span></button>
+                <td class="px-4 py-2.5"><span class="font-semibold" style="color:var(--accent);">${escapeHtml(t.word)}</span></td>
+                <td class="px-4 py-2.5 italic" style="color:var(--text-muted); font-size:13px;">${escapeHtml(t.pronunciation || t.context || '—')}</td>
+                <td class="px-4 py-2.5" style="color:var(--text-muted); font-size:12px;">${t.last_used || '—'}</td>
+                <td class="px-4 py-2.5 text-right row-actions">
+                    <button onclick="editTerm('${t.id}')" class="p-1" style="color:var(--text-muted); background:none; border:none; cursor:pointer;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-muted)'"><span class="material-icons-round" style="font-size:16px;">edit</span></button>
+                    <button onclick="deleteTerm('${t.id}')" class="p-1 ml-1" style="color:var(--text-muted); background:none; border:none; cursor:pointer;" onmouseover="this.style.color='var(--danger)'" onmouseout="this.style.color='var(--text-muted)'"><span class="material-icons-round" style="font-size:16px;">delete</span></button>
                 </td>
             `;
             tbody.appendChild(tr);
@@ -1260,19 +1675,20 @@
 
         filtered.forEach(s => {
             const div = document.createElement('div');
-            div.className = 'card-dark rounded-xl p-4 flex items-start justify-between group';
+            div.className = 'card group';
+            div.style.cssText = 'padding: 12px 14px; display:flex; align-items:flex-start; justify-content:space-between;';
             div.innerHTML = `
-                <div class="flex-1 min-w-0">
-                    <div class="flex items-center gap-2 mb-1">
-                        <span class="text-vox-purple font-bold text-sm">"${escapeHtml(s.trigger)}"</span>
-                        <span class="material-icons-round text-gray-600 text-sm">arrow_forward</span>
+                <div style="flex:1; min-width:0;">
+                    <div style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">
+                        <span style="font-weight:600; font-size:13px; color:var(--accent);">"${escapeHtml(s.trigger)}"</span>
+                        <span class="material-icons-round" style="font-size:14px; color:var(--text-muted);">arrow_forward</span>
                     </div>
-                    <p class="text-sm text-gray-300 break-words">${escapeHtml(s.content)}</p>
-                    <p class="text-[10px] text-gray-600 mt-1">${s.created_at || ''}</p>
+                    <p style="font-size:13px; color:var(--text-primary); word-break:break-word;">${escapeHtml(s.content)}</p>
+                    <p style="font-size:11px; color:var(--text-muted); margin-top:2px;">${s.created_at || ''}</p>
                 </div>
-                <div class="flex gap-1 ml-3 flex-shrink-0 row-actions">
-                    <button onclick="editSnippet('${s.id}')" class="p-1 text-gray-400 hover:text-vox-purple"><span class="material-icons-round text-lg">edit</span></button>
-                    <button onclick="deleteSnippet('${s.id}')" class="p-1 text-gray-400 hover:text-red-400"><span class="material-icons-round text-lg">delete</span></button>
+                <div class="row-actions" style="display:flex; gap:4px; margin-left:10px; flex-shrink:0;">
+                    <button onclick="editSnippet('${s.id}')" style="color:var(--text-muted); background:none; border:none; cursor:pointer; padding:2px;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-muted)'"><span class="material-icons-round" style="font-size:16px;">edit</span></button>
+                    <button onclick="deleteSnippet('${s.id}')" style="color:var(--text-muted); background:none; border:none; cursor:pointer; padding:2px;" onmouseover="this.style.color='var(--danger)'" onmouseout="this.style.color='var(--text-muted)'"><span class="material-icons-round" style="font-size:16px;">delete</span></button>
                 </div>
             `;
             list.appendChild(div);
@@ -1329,26 +1745,27 @@
 
         filtered.forEach(n => {
             const div = document.createElement('div');
-            div.className = 'card-dark rounded-xl p-4 flex items-start justify-between group';
+            div.className = 'card group';
+            div.style.cssText = 'padding:12px 14px; display:flex; align-items:flex-start; justify-content:space-between;';
             const bodyDiv = document.createElement('div');
-            bodyDiv.className = 'flex-1 min-w-0';
+            bodyDiv.style.cssText = 'flex:1; min-width:0;';
             const textP = document.createElement('p');
-            textP.className = 'text-sm text-gray-200 break-words';
+            textP.style.cssText = 'font-size:13px; color:var(--text-primary); word-break:break-word;';
             textP.textContent = n.text;
             const dateP = document.createElement('p');
-            dateP.className = 'text-[10px] text-gray-600 mt-1';
+            dateP.style.cssText = 'font-size:11px; color:var(--text-muted); margin-top:2px;';
             dateP.textContent = n.created_at || '';
             bodyDiv.appendChild(textP);
             bodyDiv.appendChild(dateP);
             const actionsDiv = document.createElement('div');
-            actionsDiv.className = 'flex gap-1 ml-3 flex-shrink-0';
+            actionsDiv.style.cssText = 'display:flex; gap:4px; margin-left:10px; flex-shrink:0;';
             const copyBtn = document.createElement('button');
-            copyBtn.className = 'p-1 text-gray-500 hover:text-vox-purple';
-            copyBtn.innerHTML = '<span class="material-icons-round text-lg">content_copy</span>';
+            copyBtn.style.cssText = 'color:var(--text-muted); background:none; border:none; cursor:pointer; padding:2px;';
+            copyBtn.innerHTML = '<span class="material-icons-round" style="font-size:16px;">content_copy</span>';
             copyBtn.addEventListener('click', () => copyText(n.text));
             const delBtn = document.createElement('button');
-            delBtn.className = 'p-1 text-gray-500 hover:text-red-400';
-            delBtn.innerHTML = '<span class="material-icons-round text-lg">delete</span>';
+            delBtn.style.cssText = 'color:var(--text-muted); background:none; border:none; cursor:pointer; padding:2px;';
+            delBtn.innerHTML = '<span class="material-icons-round" style="font-size:16px;">delete</span>';
             delBtn.addEventListener('click', () => deleteNote(n.id));
             actionsDiv.appendChild(copyBtn);
             actionsDiv.appendChild(delBtn);
@@ -1380,19 +1797,21 @@
         const sub = document.getElementById('note-rec-sub');
 
         if (btn.dataset.recording === 'true') {
-            // Stop
             btn.dataset.recording = 'false';
-            btn.className = 'w-14 h-14 rounded-full bg-vox-purple/20 text-vox-purple flex items-center justify-center hover:bg-vox-purple/30 transition-colors flex-shrink-0';
+            btn.style.background = 'var(--accent-light)';
+            btn.style.color = 'var(--accent)';
+            btn.classList.remove('recording-pulse');
             icon.textContent = 'mic';
             status.textContent = 'Procesando...';
             sub.textContent = 'Transcribiendo tu nota de voz...';
             await api.stop_note_recording();
         } else {
-            // Start
             const res = await api.start_note_recording();
             if (!res.ok) { status.textContent = res.error || 'Error'; return; }
             btn.dataset.recording = 'true';
-            btn.className = 'w-14 h-14 rounded-full bg-red-500/20 text-red-400 flex items-center justify-center hover:bg-red-500/30 transition-colors flex-shrink-0 recording-pulse';
+            btn.style.background = 'rgba(239,68,68,0.15)';
+            btn.style.color = '#ef4444';
+            btn.classList.add('recording-pulse');
             icon.textContent = 'stop';
             status.textContent = 'Grabando...';
             sub.textContent = 'Presiona de nuevo para detener';
@@ -1478,7 +1897,11 @@
             document.getElementById('set-privacy').checked = settings.privacy_mode || false;
             document.getElementById('set-filler-removal').checked = settings.filler_removal !== false;
             document.getElementById('set-punctuation-dictation').checked = settings.punctuation_dictation !== false;
+            document.getElementById('set-pause-punctuation').checked = settings.pause_punctuation || false;
+            document.getElementById('set-low-volume-mode').checked = settings.low_volume_mode || false;
+            document.getElementById('set-llm-formality').checked = settings.llm_formality || false;
             document.getElementById('set-dev-mode').checked = settings.dev_mode || false;
+            document.getElementById('set-file-tagging').checked = settings.file_tagging !== false;
             renderDevModeApps(settings.dev_mode_apps || []);
 
             // Theme
@@ -1510,7 +1933,7 @@
             const el = document.getElementById('settings-'+t);
             if (el) el.classList.toggle('hidden', t !== tab);
             const btn = document.getElementById('stab-'+t);
-            if (btn) { btn.classList.toggle('s-active', t === tab); btn.classList.toggle('text-white', t === tab); btn.classList.toggle('text-gray-400', t !== tab); }
+            if (btn) { btn.classList.toggle('s-active', t === tab); }
         });
         document.getElementById('settings-tab-title').textContent = SETTINGS_TITLES[tab] || tab;
         document.getElementById('settings-tab-desc').textContent = SETTINGS_DESCS[tab] || '';
@@ -1523,13 +1946,17 @@
     function setTheme(theme) {
         setThemeUI(theme);
         applyTheme(theme);
+        try { localStorage.setItem('vox-theme', theme); } catch(e) {}
         api.set_setting('theme', theme);
     }
 
     function setThemeUI(theme) {
         ['system','light','dark'].forEach(t => {
             const el = document.getElementById('theme-'+t);
-            if (el) { el.classList.toggle('border-vox-purple', t === theme); el.classList.toggle('border-2', t === theme); el.classList.toggle('border-white/10', t !== theme); }
+            if (el) {
+                el.style.borderColor = t === theme ? 'var(--accent)' : 'var(--border)';
+                el.style.borderWidth = t === theme ? '2px' : '1px';
+            }
         });
     }
 
@@ -1542,10 +1969,13 @@
 
         if (theme === 'dark') {
             document.documentElement.setAttribute('data-theme', 'dark');
+            try { localStorage.setItem('vox-theme', 'dark'); } catch(e) {}
         } else if (theme === 'light') {
             document.documentElement.setAttribute('data-theme', 'light');
+            try { localStorage.setItem('vox-theme', 'light'); } catch(e) {}
         } else {
             // System: detect and follow OS preference
+            try { localStorage.setItem('vox-theme', 'system'); } catch(e) {}
             const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
             document.documentElement.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
             _systemThemeListener = (e) => {
@@ -1601,6 +2031,118 @@
         loadNotes();
     }
 
+    // ── iCloud Sync ───────────────────────────────────────────────
+    async function handleSyncToiCloud() {
+        const statusEl = document.getElementById('icloud-sync-status');
+        statusEl.textContent = 'Subiendo a iCloud...';
+        statusEl.style.color = 'var(--text-muted)';
+        statusEl.classList.remove('hidden');
+        try {
+            const result = await api.sync_to_icloud();
+            if (result && result.ok) {
+                statusEl.textContent = '✓ Subido a iCloud correctamente';
+                statusEl.style.color = 'var(--success)';
+            } else {
+                statusEl.textContent = '✗ ' + (result && result.error ? result.error : 'Error al subir');
+                statusEl.style.color = 'var(--danger)';
+            }
+        } catch(e) {
+            statusEl.textContent = '✗ Error: ' + e;
+            statusEl.style.color = 'var(--danger)';
+        }
+    }
+
+    async function handleSyncFromiCloud() {
+        if (!confirm('Restaurar datos desde iCloud? Esto sobrescribira los datos locales.')) return;
+        const statusEl = document.getElementById('icloud-sync-status');
+        statusEl.textContent = 'Restaurando desde iCloud...';
+        statusEl.style.color = 'var(--text-muted)';
+        statusEl.classList.remove('hidden');
+        try {
+            const result = await api.sync_from_icloud();
+            if (result && result.ok) {
+                statusEl.textContent = '✓ Datos restaurados desde iCloud';
+                statusEl.style.color = 'var(--success)';
+                const history = await api.get_history();
+                if (history) updateHistory(history.slice(0, 50));
+                loadDictionary();
+                loadSnippets();
+            } else {
+                statusEl.textContent = '✗ ' + (result && result.error ? result.error : 'Error al restaurar');
+                statusEl.style.color = 'var(--danger)';
+            }
+        } catch(e) {
+            statusEl.textContent = '✗ Error: ' + e;
+            statusEl.style.color = 'var(--danger)';
+        }
+    }
+
+    // ── Auto-learn corrections ────────────────────────────────────
+    function enableHistoryEditing(listEl) {
+        listEl.querySelectorAll('.history-text').forEach((el, idx) => {
+            el.addEventListener('dblclick', () => {
+                if (el.contentEditable === 'true') return;
+                el.contentEditable = 'true';
+                el.style.outline = '2px solid var(--accent)';
+                el.style.outlineOffset = '2px';
+                el.style.borderRadius = '4px';
+                el.focus();
+
+                el.addEventListener('blur', async () => {
+                    el.contentEditable = 'false';
+                    el.style.outline = '';
+                    const newText = el.textContent.trim();
+                    try {
+                        const result = await api.save_history_correction(idx, newText);
+                        if (result && result.ok && result.words && result.words.length > 0) {
+                            showLearnToast(result.words);
+                        }
+                    } catch(e) {}
+                }, { once: true });
+            });
+        });
+    }
+
+    function showLearnToast(words) {
+        const existing = document.getElementById('learn-toast');
+        if (existing) existing.remove();
+
+        const toast = document.createElement('div');
+        toast.id = 'learn-toast';
+        toast.className = 'modal-box';
+        toast.style.cssText = 'position:fixed; bottom:20px; right:20px; z-index:200; padding:16px; width:300px;';
+        toast.innerHTML = `
+            <p class="text-sm font-semibold mb-1" style="color:var(--text-primary);">¿Agregar al diccionario?</p>
+            <p class="text-xs mb-3" style="color:var(--text-muted);">Detectamos estas palabras nuevas en tu correccion:</p>
+            <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:12px;">
+                ${words.map(w => `<button class="pill-btn active" data-word="${w}" onclick="toggleLearnWord(this)">${w}</button>`).join('')}
+            </div>
+            <div style="display:flex; gap:8px;">
+                <button onclick="confirmLearnWords()" class="btn-primary flex-1" style="font-size:12px; padding:5px; justify-content:center;">Agregar seleccionadas</button>
+                <button onclick="document.getElementById('learn-toast').remove()" class="btn-ghost flex-1" style="font-size:12px; padding:5px; justify-content:center;">Ignorar</button>
+            </div>
+        `;
+        document.body.appendChild(toast);
+        setTimeout(() => { if (toast.parentNode) toast.remove(); }, 15000);
+    }
+
+    function toggleLearnWord(btn) {
+        btn.classList.toggle('active');
+    }
+
+    async function confirmLearnWords() {
+        const toast = document.getElementById('learn-toast');
+        if (!toast) return;
+        const selected = toast.querySelectorAll('.pill-btn.active');
+        for (const btn of selected) {
+            const word = btn.dataset.word;
+            if (word) {
+                try { await api.add_dictionary_term_from_correction(word); } catch(e) {}
+            }
+        }
+        toast.remove();
+    }
+
     async function sendTeamInvite() {
         const input = document.getElementById('team-invite-email');
         const email = input.value.trim();
@@ -1609,7 +2151,7 @@
         input.value = '';
         const card = input.closest('.card-dark');
         const msg = document.createElement('p');
-        msg.className = 'text-xs text-vox-green mt-3';
+        msg.style.cssText = 'font-size:11px; color:var(--success); margin-top:8px;';
         msg.textContent = 'Invitacion registrada para ' + email + '. Se enviara cuando la funcion de equipos este disponible.';
         card.appendChild(msg);
         setTimeout(() => msg.remove(), 4000);
@@ -1625,10 +2167,10 @@
         btn.classList.add('loading'); btn.disabled = true; statusEl.classList.add('hidden');
         try {
             const result = await api.activate_license(key);
-            if (result.ok) { statusEl.textContent = 'Licencia activada'; statusEl.className = 'text-sm mt-2 text-vox-green'; refreshPlanInfo(); }
-            else { statusEl.textContent = result.error || 'Clave invalida'; statusEl.className = 'text-sm mt-2 text-red-400'; }
+            if (result.ok) { statusEl.textContent = 'Licencia activada'; statusEl.style.color = 'var(--success)'; refreshPlanInfo(); }
+            else { statusEl.textContent = result.error || 'Clave invalida'; statusEl.style.color = 'var(--danger)'; }
             statusEl.classList.remove('hidden');
-        } catch { statusEl.textContent = 'Error'; statusEl.className = 'text-sm mt-2 text-red-400'; statusEl.classList.remove('hidden'); }
+        } catch { statusEl.textContent = 'Error'; statusEl.style.color = 'var(--danger)'; statusEl.classList.remove('hidden'); }
         finally { btn.classList.remove('loading'); btn.disabled = false; }
     }
 
@@ -1639,9 +2181,9 @@
         list.innerHTML = '';
         (apps || []).forEach(bundleId => {
             const row = document.createElement('div');
-            row.className = 'flex items-center justify-between bg-white/[0.03] rounded-lg px-3 py-1.5';
-            row.innerHTML = `<span class="text-xs font-mono text-gray-300">${escapeHtml(bundleId)}</span>
-                <button onclick="removeDevModeApp('${escapeHtml(bundleId)}')" class="text-gray-500 hover:text-red-400 text-xs"><span class="material-icons-round text-sm">close</span></button>`;
+            row.style.cssText = 'display:flex; align-items:center; justify-content:space-between; background:var(--bg-subtle); border:1px solid var(--border); border-radius:6px; padding:4px 10px;';
+            row.innerHTML = `<span style="font-size:11px; font-family:monospace; color:var(--text-primary);">${escapeHtml(bundleId)}</span>
+                <button onclick="removeDevModeApp('${escapeHtml(bundleId)}')" style="color:var(--text-muted); background:none; border:none; cursor:pointer; padding:2px;" onmouseover="this.style.color='var(--danger)'" onmouseout="this.style.color='var(--text-muted)'"><span class="material-icons-round" style="font-size:14px;">close</span></button>`;
             list.appendChild(row);
         });
     }
@@ -1681,11 +2223,11 @@
         const ctxLabels = {personal:'Personal',work:'Trabajo',email:'Email',other:'Otro'};
         entries.forEach(([bundleId, ctx]) => {
             const row = document.createElement('div');
-            row.className = 'flex items-center justify-between bg-white/[0.03] rounded-lg px-3 py-2';
-            row.innerHTML = `<span class="text-xs font-mono text-gray-300">${escapeHtml(bundleId)}</span>
-                <div class="flex items-center gap-2">
-                    <span class="text-xs text-vox-purple font-medium">${ctxLabels[ctx] || ctx}</span>
-                    <button onclick="deleteAppStyleMapping('${escapeHtml(bundleId)}')" class="text-gray-500 hover:text-red-400"><span class="material-icons-round text-sm">close</span></button>
+            row.style.cssText = 'display:flex; align-items:center; justify-content:space-between; background:var(--bg-subtle); border:1px solid var(--border); border-radius:6px; padding:6px 10px;';
+            row.innerHTML = `<span style="font-size:11px; font-family:monospace; color:var(--text-primary);">${escapeHtml(bundleId)}</span>
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <span style="font-size:11px; color:var(--accent); font-weight:600;">${ctxLabels[ctx] || ctx}</span>
+                    <button onclick="deleteAppStyleMapping('${escapeHtml(bundleId)}')" style="color:var(--text-muted); background:none; border:none; cursor:pointer; padding:2px;" onmouseover="this.style.color='var(--danger)'" onmouseout="this.style.color='var(--text-muted)'"><span class="material-icons-round" style="font-size:14px;">close</span></button>
                 </div>`;
             list.appendChild(row);
         });
@@ -1743,8 +2285,8 @@
                 const pct = Math.max(2, (words / maxApp) * 100);
                 const shortName = app.split('.').pop() || app;
                 const row = document.createElement('div');
-                row.innerHTML = `<div class="flex items-center justify-between text-xs mb-0.5"><span class="text-gray-300 truncate">${escapeHtml(shortName)}</span><span class="text-gray-500">${words.toLocaleString()}</span></div>
-                    <div class="w-full bg-white/5 rounded-full h-1.5"><div class="progress-gradient h-1.5 rounded-full" style="width:${pct}%"></div></div>`;
+                row.innerHTML = `<div style="display:flex; align-items:center; justify-content:space-between; font-size:12px; margin-bottom:2px;"><span style="color:var(--text-primary); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(shortName)}</span><span style="color:var(--text-muted); margin-left:8px; flex-shrink:0;">${words.toLocaleString()}</span></div>
+                    <div style="width:100%; background:var(--border); border-radius:9999px; height:4px;"><div style="background:var(--accent); height:100%; border-radius:9999px; width:${pct}%;"></div></div>`;
                 appContainer.appendChild(row);
             });
         }
@@ -1759,9 +2301,9 @@
             const v = byHour[key] || 0;
             const pct = Math.max(2, (v / maxHour) * 100);
             const bar = document.createElement('div');
-            bar.className = 'flex-1 flex flex-col items-center justify-end';
-            bar.innerHTML = `<div class="w-full progress-gradient rounded-sm" style="height:${pct}%" title="${key}:00 - ${v} palabras"></div>
-                <span class="text-[8px] text-gray-600 mt-1">${h % 6 === 0 ? key : ''}</span>`;
+            bar.style.cssText = 'flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-end;';
+            bar.innerHTML = `<div style="width:100%; background:var(--accent); border-radius:2px; height:${pct}%; opacity:0.8;" title="${key}:00 — ${v} palabras"></div>
+                <span style="font-size:8px; color:var(--text-muted); margin-top:3px;">${h % 6 === 0 ? key : ''}</span>`;
             hourContainer.appendChild(bar);
         }
 
@@ -1777,8 +2319,9 @@
             sortedDates.forEach(([date, words]) => {
                 const pct = Math.max(2, (words / maxDate) * 100);
                 const row = document.createElement('div');
-                row.innerHTML = `<div class="flex items-center justify-between text-xs mb-0.5"><span class="text-gray-400 font-mono">${date}</span><span class="text-gray-500">${words.toLocaleString()} palabras</span></div>
-                    <div class="w-full bg-white/5 rounded-full h-1.5"><div class="progress-gradient h-1.5 rounded-full" style="width:${pct}%"></div></div>`;
+                row.style.marginBottom = '8px';
+                row.innerHTML = `<div style="display:flex; align-items:center; justify-content:space-between; font-size:12px; margin-bottom:2px;"><span style="color:var(--text-muted); font-family:monospace;">${date}</span><span style="color:var(--text-muted);">${words.toLocaleString()} palabras</span></div>
+                    <div style="width:100%; background:var(--border); border-radius:9999px; height:4px;"><div style="background:var(--accent); height:100%; border-radius:9999px; width:${pct}%;"></div></div>`;
                 dateContainer.appendChild(row);
             });
         }
@@ -1795,7 +2338,7 @@
             try {
                 const ok = await api.check_accessibility();
                 if (ok) { clearInterval(_permissionInterval); _permissionInterval = null;
-                    document.getElementById('permissions-status').innerHTML = '<span class="text-vox-green text-sm font-bold">Permisos concedidos!</span>';
+                    document.getElementById('permissions-status').innerHTML = '<span style="color:var(--success); font-size:13px; font-weight:600;">Permisos concedidos!</span>';
                     await onPermissionsGranted();
                 }
             } catch {}
@@ -1810,6 +2353,14 @@
             if (hasAuth) { showPage('app'); await initApp(); }
             else { showPage('login'); }
         }, 800);
+    }
+
+    // ── Greeting ─────────────────────────────────────────────────
+    function updateGreeting(name) {
+        const h = new Date().getHours();
+        let greeting = h < 12 ? 'Buenos dias' : h < 19 ? 'Buenas tardes' : 'Buenas noches';
+        const el = document.querySelector('#view-home h1');
+        if (el) el.innerHTML = greeting + ', <span id="header-name">' + (name || '...') + '</span>';
     }
 
     // ── App init ─────────────────────────────────────────────────
