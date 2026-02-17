@@ -1,21 +1,14 @@
 # -*- mode: python ; coding: utf-8 -*-
 
-import os
-import customtkinter
-
-ctk_path = os.path.dirname(customtkinter.__file__)
-
 a = Analysis(
     ['main.py'],
     pathex=[],
     binaries=[],
     datas=[
-        (ctk_path, 'customtkinter/'),
+        ('web/', 'web/'),
     ],
     hiddenimports=[
-        'pynput.keyboard._darwin',
-        'pynput.mouse._darwin',
-        'customtkinter',
+        'webview',
         'requests',
         'sounddevice',
         'scipy.io.wavfile',
@@ -23,7 +16,7 @@ a = Analysis(
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
-    excludes=['faster_whisper', 'ctranslate2', 'onnxruntime', 'torch', 'whisper'],
+    excludes=['faster_whisper', 'ctranslate2', 'onnxruntime', 'torch', 'whisper', 'customtkinter', 'pynput'],
     noarchive=False,
 )
 
