@@ -8,6 +8,57 @@ GROQ_URL = "https://api.groq.com/openai/v1/audio/transcriptions"
 MODEL = "whisper-large-v3-turbo"
 
 
+def build_smart_prompt(dev_mode=False, recent_text="", custom_terms=None):
+    """
+    Construye un prompt contextual para Whisper que mejora la precisión.
+
+    El prompt le da pistas a Whisper sobre qué palabras esperar, lo cual
+    mejora dramáticamente la precisión en:
+    - Nombres propios (Vox Easy, FastAPI)
+    - Términos técnicos (TypeScript, PostgreSQL)
+    - Contexto reciente (continúa frases previas mejor)
+
+    Args:
+        dev_mode: Si está activo, incluye vocabulario técnico
+        recent_text: Últimas palabras dictadas (para contexto)
+        custom_terms: Lista de términos personalizados del usuario
+
+    Returns:
+        String de prompt para Whisper (max 224 tokens)
+    """
+    parts = []
+
+    # 1. Contexto reciente (ayuda con continuidad)
+    if recent_text:
+        # Últimas 15 palabras para contexto
+        words = recent_text.split()[-15:]
+        if words:
+            parts.extend(words)
+
+    # 2. Términos técnicos si dev_mode activo
+    if dev_mode:
+        try:
+            from engine.dev_terms import DEV_TERMS
+            # Top 25 términos más comunes
+            parts.extend(DEV_TERMS[:25])
+        except ImportError:
+            pass
+
+    # 3. Términos custom del usuario (nombres de proyectos, etc.)
+    if custom_terms:
+        parts.extend(custom_terms[:10])
+
+    # 4. Siempre incluir nombre de la app
+    parts.extend(["Vox Easy", "VoxEasy", "dictado"])
+
+    # Unir y limitar a ~200 tokens (Whisper limit es 224)
+    prompt = ", ".join(parts)
+    if len(prompt) > 800:  # ~200 tokens aprox
+        prompt = prompt[:800]
+
+    return prompt
+
+
 class Transcriber:
     def __init__(self, **kwargs):
         if not GROQ_API_KEY:

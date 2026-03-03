@@ -22,6 +22,8 @@ from engine.text_processing import (
     apply_code_punctuation,
 )
 from engine.dev_terms import DEV_TERMS
+from engine.file_indexer import apply_file_tagging
+from engine.transcriber import build_smart_prompt
 
 LOG_PATH = os.path.join(os.path.expanduser("~"), ".voxeasy", "error.log")
 
@@ -109,6 +111,13 @@ class ApiBridge:
         self._rec_start = 0  # timestamp when recording started
         self.recorder = AudioRecorder()
         self.note_recorder = AudioRecorder()  # separate recorder for notes
+        # Apply saved audio device (None = system default = built-in mic)
+        saved_device = storage.get_settings().get("audio_device") or None
+        if not saved_device:
+            # Default: pick built-in MacBook mic if available
+            saved_device = self._find_builtin_mic()
+        self.recorder.device_name = saved_device
+        self.note_recorder.device_name = saved_device
         self.token = load_token()
         self.hotkey_str = load_hotkey()
         self.language = load_language()
@@ -251,7 +260,31 @@ class ApiBridge:
     # ── Auth ──────────────────────────────────────────────────────
 
     def check_auth(self):
-        return bool(self.token)
+        if not self.token:
+            return False
+        try:
+            resp = requests.get(
+                f"{API_URL}/auth/me",
+                headers={"Authorization": f"Bearer {self.token}"},
+                timeout=5,
+            )
+            if resp.status_code == 200:
+                user_id = resp.json().get("id")
+                if user_id:
+                    storage.set_user(user_id)
+                    self._reload_user_prefs()
+                    # Dispositivo nuevo: no existe data local → pull del servidor
+                    if not os.path.exists(storage.DATA_PATH):
+                        threading.Thread(target=self._pull_config, daemon=True).start()
+                return True
+            if resp.status_code in (401, 403):
+                clear_token()
+                self.token = None
+                return False
+        except Exception:
+            # Sin red: beneficio de la duda, el token sigue guardado
+            return True
+        return False
 
     def login(self, email, password):
         if not email or not password:
@@ -266,6 +299,13 @@ class ApiBridge:
                 data = resp.json()
                 self.token = data["token"]
                 save_token(self.token)
+                # Apuntar storage al directorio del usuario
+                user_id = data.get("user", {}).get("id")
+                if user_id:
+                    storage.set_user(user_id)
+                    self._reload_user_prefs()
+                # Pull config del servidor (cuenta existente → server gana)
+                threading.Thread(target=self._pull_config, daemon=True).start()
                 return {"ok": True}
             else:
                 try:
@@ -291,6 +331,13 @@ class ApiBridge:
                 data = resp.json()
                 self.token = data["token"]
                 save_token(self.token)
+                # Apuntar storage al directorio del nuevo usuario
+                user_id = data.get("user", {}).get("id")
+                if user_id:
+                    storage.set_user(user_id)
+                    self._reload_user_prefs()
+                # Push config local al servidor (cuenta nueva → local gana)
+                threading.Thread(target=self.push_config, daemon=True).start()
                 return {"ok": True}
             else:
                 try:
@@ -306,6 +353,88 @@ class ApiBridge:
     def logout(self):
         clear_token()
         self.token = None
+        storage.clear_user()
+
+    # ── Config Sync ───────────────────────────────────────────────
+
+    def _pull_config(self):
+        """Descarga la config del servidor y sobreescribe la local (server gana)."""
+        if not self.token:
+            return
+        try:
+            resp = requests.get(
+                f"{API_URL}/config",
+                headers={"Authorization": f"Bearer {self.token}"},
+                timeout=8,
+            )
+            if resp.status_code == 200:
+                remote = resp.json()
+                if remote:
+                    storage.load_sync_data(remote)
+                    # Recargar en memoria idioma/hotkey descargados del servidor
+                    self._reload_user_prefs(from_pull=True)
+                    # Notificar al frontend para que refresque la UI
+                    self._js("onConfigSynced && onConfigSynced();")
+                    print("[config] pull ok")
+        except Exception as e:
+            print(f"[config] pull error: {e}")
+
+    def push_config(self):
+        """Sube la config local al servidor. Llamable desde JS."""
+        if not self.token:
+            return {"ok": False}
+        try:
+            cfg = storage.get_sync_data()
+            resp = requests.put(
+                f"{API_URL}/config",
+                json={"config": cfg},
+                headers={"Authorization": f"Bearer {self.token}"},
+                timeout=8,
+            )
+            return {"ok": resp.status_code == 200}
+        except Exception as e:
+            print(f"[config] push error: {e}")
+            return {"ok": False}
+
+    def _push_config_bg(self):
+        """Push config en background para no bloquear el hilo principal."""
+        threading.Thread(target=self.push_config, daemon=True).start()
+
+    def _reload_user_prefs(self, from_pull=False):
+        """Recarga idioma y hotkey.
+        from_pull=False → config.json manda (fuente local), storage se siembra.
+        from_pull=True  → storage manda (viene del servidor tras sync).
+        """
+        try:
+            settings = storage.get_settings()
+
+            # ── Idioma ──────────────────────────────────────────
+            if from_pull:
+                lang = settings.get("language") or load_language()
+            else:
+                lang = load_language()  # config.json es autoridad local
+                # Sembrar storage si aún tiene el default
+                if not settings.get("language") or settings["language"] == "auto":
+                    storage.set_setting("language", lang)
+            self.language = lang
+            save_language_config(lang)
+
+            # ── Hotkey ──────────────────────────────────────────
+            if from_pull:
+                hotkey = settings.get("hotkey") or load_hotkey()
+            else:
+                hotkey = load_hotkey()  # config.json es autoridad local
+                # Sembrar storage si aún tiene el default
+                if not settings.get("hotkey") or settings["hotkey"] == DEFAULT_HOTKEY:
+                    storage.set_setting("hotkey", hotkey)
+
+            if hotkey != self.hotkey_str:
+                self.hotkey_str = hotkey
+                save_hotkey_config(hotkey)
+                if self.keyboard:
+                    self.keyboard.update_hotkey(hotkey)
+        except Exception as e:
+            print(f"[prefs] reload error: {e}")
 
     # ── Info ──────────────────────────────────────────────────────
 
@@ -314,7 +443,7 @@ class ApiBridge:
             return None
         try:
             resp = requests.get(
-                f"{API_URL}/me",
+                f"{API_URL}/auth/me",
                 headers={"Authorization": f"Bearer {self.token}"},
                 timeout=8,
             )
@@ -337,6 +466,8 @@ class ApiBridge:
     def set_language(self, lang):
         self.language = lang
         save_language_config(lang)
+        storage.set_setting("language", lang)
+        self._push_config_bg()
 
     def get_hotkey(self):
         return hotkey_to_display(self.hotkey_str)
@@ -398,22 +529,54 @@ class ApiBridge:
     # ── Permissions ─────────────────────────────────────────────
 
     def check_accessibility(self):
+        # AXIsProcessTrusted() cachea False en el proceso.
+        # AXIsProcessTrustedWithOptions(prompt=False) consulta TCC directamente sin caché.
         try:
-            from ApplicationServices import AXIsProcessTrusted
-            return AXIsProcessTrusted()
+            from ApplicationServices import AXIsProcessTrustedWithOptions
+            return bool(AXIsProcessTrustedWithOptions({"AXTrustedCheckOptionPrompt": False}))
         except Exception:
-            return False
+            try:
+                from ApplicationServices import AXIsProcessTrusted
+                return AXIsProcessTrusted()
+            except Exception:
+                return False
 
     def request_accessibility(self):
+        import subprocess
+        # Con firma ad-hoc cada build tiene un hash distinto. macOS TCC guarda el
+        # permiso por hash de binario, no solo por bundle ID. Al resetear primero,
+        # el siguiente prompt graba el hash actual → check_accessibility() funciona.
+        try:
+            subprocess.run(
+                ['tccutil', 'reset', 'Accessibility', 'com.voxeasy.app'],
+                capture_output=True, timeout=5,
+            )
+            print("[accessibility] TCC entry reset for com.voxeasy.app", flush=True)
+        except Exception as e:
+            print(f"[accessibility] TCC reset failed: {e}", flush=True)
         try:
             from ApplicationServices import AXIsProcessTrustedWithOptions
             AXIsProcessTrustedWithOptions({"AXTrustedCheckOptionPrompt": True})
         except Exception:
-            import subprocess
             subprocess.Popen([
                 'open',
                 'x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility'
             ])
+
+    def restart_app(self):
+        """Reinicia la app para que TCC lea el permiso recien concedido."""
+        import subprocess
+        try:
+            app_path = self._get_app_path()
+            if app_path.endswith('.app'):
+                subprocess.Popen(['open', '-n', app_path])
+            else:
+                subprocess.Popen([sys.executable] + sys.argv)
+            print("[restart] Restarting app...", flush=True)
+        except Exception as e:
+            print(f"[restart] error: {e}", flush=True)
+        finally:
+            os._exit(0)
 
     def request_microphone(self):
         try:
@@ -427,6 +590,37 @@ class ApiBridge:
     def start_keyboard(self):
         if self.keyboard and not self.keyboard._tap:
             self.keyboard.start_listening()
+
+    # ── Audio device selection ────────────────────────────────────
+
+    @staticmethod
+    def _find_builtin_mic():
+        """Return the name of the Mac's built-in microphone, or None."""
+        try:
+            for d in AudioRecorder.list_input_devices():
+                if d['is_builtin']:
+                    return d['name']
+        except Exception:
+            pass
+        return None
+
+    def get_audio_devices(self):
+        """Return list of input devices for the device picker in Settings."""
+        devices = AudioRecorder.list_input_devices()
+        saved = self.recorder.device_name
+        for d in devices:
+            d['selected'] = (d['name'] == saved)
+        return devices
+
+    def set_audio_device(self, device_name):
+        """Set the recording device by name. Empty string = built-in mic default."""
+        if not device_name:
+            device_name = self._find_builtin_mic()
+        self.recorder.device_name = device_name
+        self.note_recorder.device_name = device_name
+        storage.set_setting('audio_device', device_name)
+        print(f"[audio] Device set to: {device_name!r}", flush=True)
+        return {'ok': True}
 
     # ── External links ────────────────────────────────────────────
 
@@ -490,7 +684,9 @@ class ApiBridge:
             if config_str:
                 self.hotkey_str = config_str
                 save_hotkey_config(config_str)
+                storage.set_setting("hotkey", config_str)
                 self.keyboard.update_hotkey(config_str)
+                self._push_config_bg()
 
     def cancel_hotkey_capture(self):
         if self.keyboard:
@@ -543,8 +739,13 @@ class ApiBridge:
             self._dictating = True
             self.is_recording = True
             self._rec_start = time.time()
+            # Apply low-volume mode settings before starting
+            settings = storage.get_settings()
+            self.recorder.low_volume_mode = settings.get("low_volume_mode", False)
             self.recorder.start_recording()
-            self._js("updateStatus('recording', 'Escuchando...', 'Manten presionado... suelta para procesar');")
+            lv = self.recorder.low_volume_mode
+            label = 'Escuchando (modo silencio)...' if lv else 'Escuchando...'
+            self._js(f"updateStatus('recording', '{label}', 'Manten presionado... suelta para procesar');")
             self._show_indicator()
             # Start feeding real audio levels to the indicator
             threading.Thread(target=self._feed_levels, daemon=True).start()
@@ -606,33 +807,30 @@ class ApiBridge:
             self._js_queue.clear()
 
     def _build_whisper_prompt(self):
-        """Build Whisper prompt with dictionary terms (sorted by usage) for better recognition."""
-        base = "Transcripcion de dictado por voz."
-        vocab_words = []
+        """
+        Build Whisper prompt with smart context for better recognition.
+        Uses balanced mode: incluye vocabulario personalizado + términos técnicos.
+        """
+        # Obtener términos personalizados del diccionario del usuario
+        custom_terms = []
         try:
-            # Terms sorted by use_count descending (most-used first)
             terms = storage.get_dictionary_sorted_by_usage()
-            vocab_words = [t["word"] for t in terms[:50]]
+            custom_terms = [t["word"] for t in terms[:30]]  # Top 30 más usados
         except Exception:
             pass
 
-        # If dev mode is active, append DEV_TERMS (up to 30, no duplicates)
-        try:
-            if self._is_dev_mode_active():
-                existing = {w.lower() for w in vocab_words}
-                added = 0
-                for dt in DEV_TERMS:
-                    if dt.lower() not in existing and added < 30:
-                        vocab_words.append(dt)
-                        existing.add(dt.lower())
-                        added += 1
-        except Exception:
-            pass
+        # Construir prompt inteligente con contexto
+        dev_mode = self._is_dev_mode_active()
+        prompt = build_smart_prompt(
+            dev_mode=dev_mode,
+            recent_text="",  # TODO: Agregar historial de texto reciente
+            custom_terms=custom_terms
+        )
 
-        if vocab_words:
-            terms_str = ", ".join(vocab_words)
-            return f"{base} Vocabulario: {terms_str}."
-        return base
+        # Agregar prefix en español para mejor contexto de idioma
+        if prompt:
+            return f"Transcripción de dictado. {prompt}"
+        return "Transcripción de dictado por voz."
 
     def _apply_snippet_expansion(self, text):
         """Expand snippet triggers in transcribed text (exact match + fuzzy fallback)."""
@@ -765,6 +963,8 @@ class ApiBridge:
             pass
 
     def _process_audio_inner(self):
+        # Capture silence events BEFORE stopping (stop clears them)
+        silence_events = self.recorder.get_silence_events()
         audio_buf = self.recorder.stop_recording()
         if not audio_buf:
             self._js("updateStatus('ready', 'No se detecto voz', '');")
@@ -815,13 +1015,17 @@ class ApiBridge:
                     text = format_list(text, lang)
 
                     # 3. Punctuation: dev mode uses code punctuation,
-                    #    normal mode uses spoken punctuation dictation
+                    #    normal mode uses spoken punctuation dictation or pause-based
                     dev_mode = self._is_dev_mode_active()
                     if dev_mode:
                         text = apply_code_casing(text)
                         text = apply_code_punctuation(text)
                     elif settings.get("punctuation_dictation", True):
                         text = dictate_punctuation(text, lang)
+                    elif settings.get("pause_punctuation", False):
+                        # Pause-based punctuation (mutually exclusive with dictation mode)
+                        from engine.audio import AudioRecorder as _AR
+                        text = _AR.compute_pause_punctuation(text, silence_events)
 
                     # 4. Filler removal
                     if settings.get("filler_removal", True):
@@ -840,12 +1044,25 @@ class ApiBridge:
                     else:
                         text = self._apply_style_transforms(text)
 
+                    # 6.5 LLM Formality transform (if enabled and not neutral)
+                    if settings.get("llm_formality", False):
+                        style_data = storage.get_style()
+                        ctx = style_data.get("active_context", "personal")
+                        formality = style_data.get("styles", {}).get(ctx, {}).get("formality", "neutral")
+                        if formality != "neutral":
+                            result = self.transform_text_formality(text, formality)
+                            text = result.get("text", text)
+
                     # 7. Track term usage (frequency boosting)
                     self._track_term_usage(text)
 
                     # 8. Record analytics
                     bundle_id = self._get_frontmost_bundle_id()
                     self._record_analytics(text, bundle_id)
+
+                    # 9. @File tagging (dev mode + file_tagging setting, Cursor/Windsurf/VSCode)
+                    if dev_mode and settings.get("file_tagging", False) and bundle_id:
+                        text = apply_file_tagging(text, bundle_id)
                     # ── END PIPELINE ──────────────────────────────
 
                     # Ensure user's app has focus before typing
@@ -909,14 +1126,19 @@ class ApiBridge:
         if not word:
             return {"ok": False, "error": "Palabra requerida"}
         term = storage.add_term(word, pronunciation, context)
+        self._push_config_bg()
         return {"ok": True, "term": term}
 
     def update_term(self, term_id, word, pronunciation="", context=""):
         ok = storage.update_term(term_id, word, pronunciation, context)
+        if ok:
+            self._push_config_bg()
         return {"ok": ok}
 
     def delete_term(self, term_id):
         ok = storage.delete_term(term_id)
+        if ok:
+            self._push_config_bg()
         return {"ok": ok}
 
     # ── Snippets ──────────────────────────────────────────────
@@ -928,14 +1150,19 @@ class ApiBridge:
         if not trigger or not content:
             return {"ok": False, "error": "Trigger y contenido requeridos"}
         snippet = storage.add_snippet(trigger, content)
+        self._push_config_bg()
         return {"ok": True, "snippet": snippet}
 
     def update_snippet(self, snippet_id, trigger, content):
         ok = storage.update_snippet(snippet_id, trigger, content)
+        if ok:
+            self._push_config_bg()
         return {"ok": ok}
 
     def delete_snippet(self, snippet_id):
         ok = storage.delete_snippet(snippet_id)
+        if ok:
+            self._push_config_bg()
         return {"ok": ok}
 
     # ── Notes ─────────────────────────────────────────────────
@@ -947,10 +1174,13 @@ class ApiBridge:
         if not text:
             return {"ok": False, "error": "Texto requerido"}
         note = storage.add_note(text)
+        self._push_config_bg()
         return {"ok": True, "note": note}
 
     def delete_note(self, note_id):
         ok = storage.delete_note(note_id)
+        if ok:
+            self._push_config_bg()
         return {"ok": ok}
 
     def start_note_recording(self):
@@ -1011,10 +1241,12 @@ class ApiBridge:
 
     def save_style(self, context, formality, punctuation, capitalization):
         storage.save_style(context, formality, punctuation, capitalization)
+        self._push_config_bg()
         return {"ok": True}
 
     def set_active_style_context(self, context):
         storage.set_active_style_context(context)
+        self._push_config_bg()
         return {"ok": True}
 
     # ── App Style Map ────────────────────────────────────────
@@ -1068,6 +1300,7 @@ class ApiBridge:
             self._set_launch_at_login(value)
         elif key == "show_in_dock":
             self._set_show_in_dock(value)
+        self._push_config_bg()
         return {"ok": True}
 
     def _get_app_path(self):
@@ -1144,6 +1377,86 @@ class ApiBridge:
         entries_json = json.dumps(self.history[:50], ensure_ascii=False)
         self._js(f"updateHistory({entries_json});")
 
+    # ── Auto-learn corrections ────────────────────────────────────
+
+    def save_history_correction(self, index, new_text):
+        """Called from JS when user edits a history item. Diffs text and offers to add new words."""
+        try:
+            index = int(index)
+            if index < 0 or index >= len(self.history):
+                return {"ok": False}
+            original = self.history[index].get("text", "")
+            if original == new_text:
+                return {"ok": True, "words": []}
+
+            # Update in-memory history
+            self.history[index]["text"] = new_text
+            storage.update_history_entry(index, new_text)
+
+            # Find words that changed using difflib
+            orig_words = original.split()
+            new_words = new_text.split()
+            matcher = difflib.SequenceMatcher(None, orig_words, new_words)
+            changed = []
+            for tag, i1, i2, j1, j2 in matcher.get_opcodes():
+                if tag in ('replace', 'insert'):
+                    for w in new_words[j1:j2]:
+                        clean = re.sub(r'[^\w\'-]', '', w).strip()
+                        if clean and len(clean) > 2:
+                            changed.append(clean)
+
+            # Deduplicate
+            seen = set()
+            unique_changed = []
+            for w in changed:
+                if w.lower() not in seen:
+                    seen.add(w.lower())
+                    unique_changed.append(w)
+
+            return {"ok": True, "words": unique_changed}
+        except Exception as e:
+            return {"ok": False, "error": str(e)[:60]}
+
+    def add_dictionary_term_from_correction(self, word):
+        """Add a word to the dictionary from a correction suggestion."""
+        if not word:
+            return {"ok": False, "error": "Palabra requerida"}
+        term = storage.add_term(word, "", "auto-aprendido")
+        return {"ok": True, "term": term}
+
+    # ── LLM Formality transform ───────────────────────────────────
+
+    def transform_text_formality(self, text, formality):
+        """Transform text to desired formality using Claude Haiku via the API."""
+        if not text or formality == "neutral":
+            return {"ok": True, "text": text}
+        try:
+            resp = requests.post(
+                f"{API_URL}/style/transform",
+                json={"text": text, "formality": formality},
+                headers={"Authorization": f"Bearer {self.token}"},
+                timeout=8,
+            )
+            if resp.status_code == 200:
+                result = resp.json()
+                return {"ok": True, "text": result.get("text", text)}
+            return {"ok": True, "text": text}  # fallback: original text
+        except Exception:
+            return {"ok": True, "text": text}  # fallback on any error
+
+    # ── iCloud Sync ───────────────────────────────────────────────
+
+    def sync_to_icloud(self):
+        """Copy local data.json to iCloud Drive."""
+        return storage.sync_to_icloud()
+
+    def sync_from_icloud(self):
+        """Restore data.json from iCloud Drive and refresh in-memory state."""
+        result = storage.sync_from_icloud()
+        if result.get("ok"):
+            self.history = storage.get_history()
+        return result
+
 
 # ── Entry point ───────────────────────────────────────────────────
 
@@ -1194,7 +1507,7 @@ body{background:transparent;font-family:-apple-system,BlinkMacSystemFont,"Inter"
   <div class="bars" id="bars"></div>
   <div class="status">
     <div class="ping"><div class="ping-outer"></div><div class="ping-inner"></div></div>
-    <span class="label">Grabando</span>
+    <span class="label"></span>
   </div>
 </div>
 <script>
@@ -1222,8 +1535,93 @@ function setLevel(l){const a=new Array(N).fill(l);setBars(a)}
 </body></html>'''
 
 
-if __name__ == "__main__":
+_LOCK_PATH = os.path.join(os.path.expanduser("~"), ".voxeasy", "app.lock")
+
+
+def _acquire_single_instance():
+    """Evita que la app se abra dos veces. Devuelve el fd del lock o None si ya corre."""
+    import fcntl
+    os.makedirs(os.path.dirname(_LOCK_PATH), exist_ok=True)
+    fd = open(_LOCK_PATH, "w")
     try:
+        fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        fd.write(str(os.getpid()))
+        fd.flush()
+        return fd  # mantener abierto para que el lock persista
+    except IOError:
+        fd.close()
+        return None
+
+
+def _read_lock_pid():
+    """Lee el PID guardado en el lock file."""
+    try:
+        with open(_LOCK_PATH) as f:
+            return int(f.read().strip())
+    except Exception:
+        return None
+
+
+def _ask_close_and_reopen():
+    """Muestra un dialogo nativo preguntando si cerrar la instancia anterior.
+    Devuelve True si el usuario eligio cerrar y continuar."""
+    import subprocess
+    script = (
+        'display dialog "Vox Easy ya esta abierto.\\n\\n'
+        '¿Deseas cerrar la version actual y abrir esta?" '
+        'buttons {"Cancelar", "Cerrar y abrir"} '
+        'default button "Cerrar y abrir" '
+        'with title "Vox Easy" with icon note'
+    )
+    result = subprocess.run(['osascript', '-e', script],
+                            capture_output=True, text=True)
+    return 'Cerrar y abrir' in result.stdout
+
+
+if __name__ == "__main__":
+    _lock_fd = _acquire_single_instance()
+    if _lock_fd is None:
+        # Otra instancia esta corriendo — preguntar al usuario
+        import signal as _signal
+        old_pid = _read_lock_pid()
+        if old_pid and _ask_close_and_reopen():
+            # Terminar el proceso anterior
+            try:
+                os.kill(old_pid, _signal.SIGTERM)
+            except OSError:
+                pass
+            # Esperar hasta 4 segundos a que libere el lock
+            for _ in range(40):
+                time.sleep(0.1)
+                _lock_fd = _acquire_single_instance()
+                if _lock_fd is not None:
+                    break
+            if _lock_fd is None:
+                import subprocess as _sp
+                _sp.run(['osascript', '-e',
+                         'display dialog "No se pudo cerrar Vox Easy.\\nCierralo manualmente desde el Dock o la barra de menu." '
+                         'buttons {"OK"} default button "OK" with title "Vox Easy"'],
+                        capture_output=True)
+                sys.exit(1)
+            # Lock adquirido — continuar con el arranque normal
+        else:
+            # Usuario cancelo → traer la instancia actual al frente y salir
+            try:
+                from AppKit import NSRunningApplication, NSApplicationActivateIgnoringOtherApps
+                apps = NSRunningApplication.runningApplicationsWithBundleIdentifier_("com.voxeasy.app")
+                for app in apps:
+                    app.activateWithOptions_(NSApplicationActivateIgnoringOtherApps)
+            except Exception:
+                pass
+            sys.exit(0)
+
+    try:
+        try:
+            from AppKit import NSApp, NSApplication
+            NSApplication.sharedApplication()
+            NSApp.activateIgnoringOtherApps_(True)
+        except Exception:
+            pass
         api = ApiBridge()
         web_dir = get_web_dir()
 

@@ -14,6 +14,7 @@
   "keywords": [],
   "type": "commonjs",
   "devDependencies": {
+    "shadcn": "^3.8.5",
     "vite": "^7.3.1"
   }
 }

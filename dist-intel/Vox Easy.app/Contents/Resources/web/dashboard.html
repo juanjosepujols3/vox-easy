@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vox Easy | Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.14/dist/full.min.css" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <script>
+      tailwind.config = {
+        theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'] }, colors: { vox: { purple: '#a29bfe', green: '#55e6c1', dark: '#0a0a0c' } } } }
+      }
+    </script>
+    <style>
+      body { font-family: 'Inter', sans-serif; background: #0a0a0c; }
+      .gradient-text { background: linear-gradient(135deg, #a29bfe, #55e6c1); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+      .glass { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); backdrop-filter: blur(12px); }
+      .btn-gradient { background: linear-gradient(135deg, #a29bfe, #55e6c1); color: #000; border: none; }
+      .btn-gradient:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(162,155,254,0.3); }
+      .glow-purple { box-shadow: 0 0 40px rgba(162,155,254,0.1); }
+      .glow-green { box-shadow: 0 0 40px rgba(85,230,193,0.1); }
+      .progress-bar { background: linear-gradient(90deg, #a29bfe, #55e6c1); transition: width 0.8s ease; }
+    </style>
+</head>
+<body class="text-gray-100 min-h-screen">
+
+    <!-- Navbar -->
+    <div class="navbar px-6 lg:px-12 h-20 border-b border-white/5" style="background: rgba(10,10,12,0.9); backdrop-filter: blur(12px);">
+        <div class="navbar-start">
+            <a href="/" class="text-2xl font-black gradient-text">Vox Easy</a>
+        </div>
+        <div class="navbar-end gap-3">
+            <span id="user-name" class="text-gray-400 text-sm hidden lg:inline"></span>
+            <div id="user-badge" class="badge badge-outline text-xs px-3 py-2"></div>
+            <button onclick="logout()" class="btn btn-ghost btn-sm text-gray-400">Cerrar sesion</button>
+        </div>
+    </div>
+
+    <!-- Content -->
+    <div class="container mx-auto px-6 lg:px-12 py-12 max-w-5xl">
+
+        <!-- Welcome -->
+        <div class="mb-10">
+            <h1 class="text-3xl lg:text-4xl font-black mb-2">Bienvenido, <span id="display-name" class="gradient-text"></span></h1>
+            <p class="text-gray-400">Tu panel de control de Vox Easy</p>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="grid md:grid-cols-3 gap-6 mb-10">
+            <!-- Usage Card -->
+            <div class="glass rounded-2xl p-6 md:col-span-2 glow-purple">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="font-bold text-lg">Uso esta semana</h3>
+                    <span class="text-gray-500 text-sm">Se resetea cada lunes</span>
+                </div>
+                <div class="flex items-end gap-4 mb-4">
+                    <span id="words-used" class="text-5xl font-black gradient-text">—</span>
+                    <span class="text-gray-400 mb-2">/ <span id="words-limit">3,000</span> palabras</span>
+                </div>
+                <div class="w-full bg-base-300/50 rounded-full h-3 mb-3">
+                    <div id="usage-bar" class="progress-bar h-3 rounded-full" style="width: 0%"></div>
+                </div>
+                <p id="words-remaining" class="text-gray-500 text-sm"></p>
+            </div>
+
+            <!-- Plan Card -->
+            <div id="plan-card" class="glass rounded-2xl p-6 flex flex-col justify-between">
+                <div>
+                    <h3 class="font-bold text-lg mb-2">Tu plan</h3>
+                    <div id="plan-name" class="text-3xl font-black mb-1">—</div>
+                    <p id="plan-desc" class="text-gray-400 text-sm"></p>
+                </div>
+                <div id="upgrade-section" class="mt-4">
+                    <a href="#activate" onclick="document.getElementById('license-section').scrollIntoView({behavior:'smooth'})" class="btn btn-gradient btn-sm rounded-full w-full font-bold">Actualizar a Pro</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Download & License Row -->
+        <div class="grid md:grid-cols-2 gap-6 mb-10">
+            <!-- Download -->
+            <div class="glass rounded-2xl p-6 glow-green">
+                <h3 class="font-bold text-lg mb-4">Descargar Vox Easy</h3>
+                <p class="text-gray-400 text-sm mb-6">Selecciona la version para tu Mac</p>
+                <div class="space-y-3">
+                    <a href="#" class="btn btn-outline rounded-xl w-full justify-start gap-3 text-gray-300 hover:border-vox-green">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                        Mac Intel (x86_64)
+                        <span class="badge badge-sm bg-base-300/50 ml-auto">73 MB</span>
+                    </a>
+                    <a href="#" class="btn btn-outline rounded-xl w-full justify-start gap-3 text-gray-300 hover:border-vox-green">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                        Mac Apple Silicon (M1/M2/M3)
+                        <span class="badge badge-sm bg-base-300/50 ml-auto">70 MB</span>
+                    </a>
+                </div>
+                <p class="text-gray-600 text-xs mt-4">Requiere macOS 12 o superior</p>
+            </div>
+
+            <!-- License Activation -->
+            <div id="license-section" class="glass rounded-2xl p-6">
+                <h3 class="font-bold text-lg mb-4">Activar licencia Pro</h3>
+                <p class="text-gray-400 text-sm mb-6">Ingresa tu clave de licencia para desbloquear uso ilimitado</p>
+                <div id="license-form">
+                    <div class="join w-full">
+                        <input type="text" id="license-input" placeholder="XXXX-XXXX-XXXX-XXXX" class="input input-bordered join-item flex-1 bg-base-300/30 border-white/10 focus:border-vox-purple font-mono" />
+                        <button onclick="activateLicense()" id="license-btn" class="btn btn-gradient join-item font-bold">Activar</button>
+                    </div>
+                    <div id="license-error" class="text-red-400 text-sm mt-2 hidden"></div>
+                    <div id="license-success" class="text-vox-green text-sm mt-2 hidden"></div>
+                </div>
+                <div id="license-active" class="hidden">
+                    <div class="flex items-center gap-3 p-4 rounded-xl bg-vox-green/10 border border-vox-green/20">
+                        <svg class="w-6 h-6 text-vox-green flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                        <div>
+                            <p class="font-semibold text-vox-green">Licencia Pro activa</p>
+                            <p id="license-key-display" class="text-gray-400 text-xs font-mono mt-1"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Account Info -->
+        <div class="glass rounded-2xl p-6">
+            <h3 class="font-bold text-lg mb-4">Informacion de cuenta</h3>
+            <div class="grid md:grid-cols-3 gap-6">
+                <div>
+                    <p class="text-gray-500 text-sm mb-1">Email</p>
+                    <p id="account-email" class="font-semibold">—</p>
+                </div>
+                <div>
+                    <p class="text-gray-500 text-sm mb-1">Plan</p>
+                    <p id="account-plan" class="font-semibold">—</p>
+                </div>
+                <div>
+                    <p class="text-gray-500 text-sm mb-1">Miembro desde</p>
+                    <p id="account-since" class="font-semibold">—</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API = window.location.origin;
+        const token = localStorage.getItem('vox_token');
+
+        if (!token) {
+            window.location.href = '/login.html';
+        }
+
+        async function loadDashboard() {
+            try {
+                // Load user info
+                const userRes = await fetch(`${API}/auth/me`, {
+                    headers: { 'Authorization': `Bearer ${token}` },
+                });
+
+                if (userRes.status === 401) {
+                    localStorage.clear();
+                    window.location.href = '/login.html';
+                    return;
+                }
+
+                const user = await userRes.json();
+
+                // Load usage
+                const usageRes = await fetch(`${API}/usage`, {
+                    headers: { 'Authorization': `Bearer ${token}` },
+                });
+                const usage = await usageRes.json();
+
+                // Load license status
+                const licenseRes = await fetch(`${API}/license/status`, {
+                    headers: { 'Authorization': `Bearer ${token}` },
+                });
+                const license = await licenseRes.json();
+
+                // Update UI
+                const name = user.name || user.email.split('@')[0];
+                document.getElementById('display-name').textContent = name;
+                document.getElementById('user-name').textContent = name;
+
+                // Plan badge
+                const badge = document.getElementById('user-badge');
+                if (user.is_pro) {
+                    badge.textContent = 'PRO';
+                    badge.className = 'badge border-vox-purple text-vox-purple text-xs px-3 py-2';
+                } else {
+                    badge.textContent = 'FREE';
+                    badge.className = 'badge badge-outline text-xs px-3 py-2';
+                }
+
+                // Usage stats
+                const used = usage.words_used_this_week || 0;
+                const limit = usage.weekly_limit || 3000;
+                document.getElementById('words-used').textContent = used.toLocaleString();
+
+                if (user.is_pro) {
+                    document.getElementById('words-limit').textContent = '∞';
+                    document.getElementById('usage-bar').style.width = '100%';
+                    document.getElementById('words-remaining').textContent = 'Uso ilimitado con tu plan Pro';
+                } else {
+                    document.getElementById('words-limit').textContent = limit.toLocaleString();
+                    const pct = Math.min(100, (used / limit) * 100);
+                    document.getElementById('usage-bar').style.width = pct + '%';
+                    const remaining = Math.max(0, limit - used);
+                    document.getElementById('words-remaining').textContent = `${remaining.toLocaleString()} palabras restantes esta semana`;
+                }
+
+                // Plan card
+                document.getElementById('plan-name').textContent = user.is_pro ? 'Pro' : 'Free';
+                document.getElementById('plan-desc').textContent = user.is_pro ? 'Palabras ilimitadas' : '3,000 palabras/semana';
+                if (user.is_pro) {
+                    document.getElementById('upgrade-section').classList.add('hidden');
+                    document.getElementById('plan-card').classList.add('glow-green');
+                }
+
+                // License
+                if (license.is_pro && license.license_key) {
+                    document.getElementById('license-form').classList.add('hidden');
+                    document.getElementById('license-active').classList.remove('hidden');
+                    document.getElementById('license-key-display').textContent = license.license_key;
+                }
+
+                // Account info
+                document.getElementById('account-email').textContent = user.email;
+                document.getElementById('account-plan').textContent = user.is_pro ? 'Pro' : 'Free';
+                document.getElementById('account-since').textContent = 'Febrero 2026';
+
+            } catch (err) {
+                console.error('Error loading dashboard:', err);
+            }
+        }
+
+        async function activateLicense() {
+            const key = document.getElementById('license-input').value.trim();
+            const errEl = document.getElementById('license-error');
+            const successEl = document.getElementById('license-success');
+            const btn = document.getElementById('license-btn');
+            errEl.classList.add('hidden');
+            successEl.classList.add('hidden');
+
+            if (!key) {
+                errEl.textContent = 'Ingresa una clave de licencia';
+                errEl.classList.remove('hidden');
+                return;
+            }
+
+            btn.classList.add('loading');
+            btn.disabled = true;
+
+            try {
+                const res = await fetch(`${API}/license/activate`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`,
+                    },
+                    body: JSON.stringify({ license_key: key }),
+                });
+                const data = await res.json();
+
+                if (res.ok) {
+                    successEl.textContent = data.message || 'Licencia activada';
+                    successEl.classList.remove('hidden');
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    errEl.textContent = data.detail || 'Error al activar licencia';
+                    errEl.classList.remove('hidden');
+                }
+            } catch (err) {
+                errEl.textContent = 'Error de conexion';
+                errEl.classList.remove('hidden');
+            } finally {
+                btn.classList.remove('loading');
+                btn.disabled = false;
+            }
+        }
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = '/';
+        }
+
+        loadDashboard();
+    </script>
+</body>
+</html>

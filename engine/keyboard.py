@@ -141,7 +141,8 @@ class KeyboardController:
         def _tap_callback(proxy, event_type, event, refcon):
             try:
                 # Re-enable if macOS disabled the tap due to timeout
-                if event_type == Quartz.kCGEventTapDisabledByTimeout:
+                if event_type in (Quartz.kCGEventTapDisabledByTimeout,
+                                  Quartz.kCGEventTapDisabledByUserInput):
                     if controller._tap:
                         Quartz.CGEventTapEnable(controller._tap, True)
                     return event

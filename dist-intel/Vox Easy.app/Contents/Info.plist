@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDisplayName</key>
+	<string>Vox Easy</string>
+	<key>CFBundleExecutable</key>
+	<string>Vox Easy Intel</string>
+	<key>CFBundleIconFile</key>
+	<string>VoxEasy.icns</string>
+	<key>CFBundleIdentifier</key>
+	<string>com.voxeasy.app</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>Vox Easy</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>1.0.0</string>
+	<key>CFBundleVersion</key>
+	<string>1.0.0</string>
+	<key>LSMinimumSystemVersion</key>
+	<string>12.0</string>
+	<key>NSAppleEventsUsageDescription</key>
+	<string>Vox Easy necesita permisos de accesibilidad para escribir texto automáticamente.</string>
+	<key>NSHighResolutionCapable</key>
+	<true/>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Vox Easy necesita acceso al micrófono para transcribir tu voz.</string>
+</dict>
+</plist>

@@ -1,6 +1,6 @@
 """
 Persistent local storage for Vox Easy.
-All data lives in ~/.voxeasy/data.json with thread-safe access.
+Each user has their own data file: ~/.voxeasy/users/<user_id>/data.json
 """
 
 import datetime
@@ -10,9 +10,24 @@ import threading
 import time
 import uuid
 
-DATA_PATH = os.path.join(os.path.expanduser("~"), ".voxeasy", "data.json")
+_BASE_DIR = os.path.join(os.path.expanduser("~"), ".voxeasy")
+
+# DATA_PATH es mutable: cambia al hacer login/logout
+DATA_PATH = os.path.join(_BASE_DIR, "data.json")  # solo usado antes de login
 
 _lock = threading.Lock()
+
+
+def set_user(user_id):
+    """Apunta el storage al directorio del usuario logueado."""
+    global DATA_PATH
+    DATA_PATH = os.path.join(_BASE_DIR, "users", str(user_id), "data.json")
+
+
+def clear_user():
+    """Resetea el storage al archivo guest (sin sesión)."""
+    global DATA_PATH
+    DATA_PATH = os.path.join(_BASE_DIR, "data.json")
 
 DEFAULT_DATA = {
     "dictionary": [],
@@ -36,9 +51,22 @@ DEFAULT_DATA = {
         "dev_mode": False,
         "dev_mode_apps": [
             "com.microsoft.VSCode",
-            "com.todesktop.230313mzl4w4u92",
-            "com.exafunction.windsurf",
+            "com.todesktop.230313mzl4w4u92",  # Cursor
+            "com.exafunction.windsurf",         # Windsurf
+            "com.google.antigravity",           # Antigravity
+            "com.apple.Terminal",               # Terminal.app (Claude Code)
+            "com.googlecode.iterm2",            # iTerm2
+            "dev.warp.Warp-Stable",             # Warp
+            "com.mitchellh.ghostty",            # Ghostty
         ],
+        "low_volume_mode": False,
+        "pause_punctuation": False,
+        "llm_formality": False,
+        "icloud_sync": False,
+        "file_tagging": True,
+        "language": "auto",
+        "hotkey": "<fn>",
+        "audio_device": None,
     },
     "app_style_map": {
         "com.apple.mail": "email",
@@ -83,6 +111,33 @@ def _write(data):
 
 def _gen_id():
     return uuid.uuid4().hex[:12]
+
+
+# ── Cloud sync helpers ────────────────────────────────────────
+
+_SYNC_KEYS = {
+    "dictionary", "snippets", "notes", "style",
+    "settings", "app_style_map", "profile", "active_style_context",
+}
+
+
+def get_sync_data():
+    """Return only syncable keys for cloud upload."""
+    with _lock:
+        data = _read()
+    return {k: data[k] for k in _SYNC_KEYS if k in data}
+
+
+def load_sync_data(remote: dict):
+    """Overwrite local syncable keys with data received from server."""
+    if not remote:
+        return
+    with _lock:
+        data = _read()
+        for key in _SYNC_KEYS:
+            if key in remote:
+                data[key] = remote[key]
+        _write(data)
 
 
 # ── Dictionary ────────────────────────────────────────────────
@@ -286,6 +341,19 @@ def add_history_entry(text):
         return entry
 
 
+def update_history_entry(index, new_text):
+    """Update the text of a history entry at the given index."""
+    with _lock:
+        data = _read()
+        history = data.get("history", [])
+        if 0 <= index < len(history):
+            history[index]["text"] = new_text
+            data["history"] = history
+            _write(data)
+            return True
+        return False
+
+
 def clear_history():
     with _lock:
         data = _read()
@@ -459,3 +527,53 @@ def get_analytics():
     with _lock:
         data = _read()
         return data.get("analytics", {"by_app": {}, "by_date": {}, "by_hour": {}})
+
+
+# ── iCloud Drive Sync ─────────────────────────────────────────────
+
+_ICLOUD_BASE = os.path.expanduser(
+    "~/Library/Mobile Documents/com~apple~CloudDocs/VoxEasy"
+)
+
+
+def _icloud_path():
+    """Devuelve el path de iCloud para el usuario activo (espeja la estructura local)."""
+    # DATA_PATH = ~/.voxeasy/users/<id>/data.json  →  iCloud/.../VoxEasy/users/<id>/data.json
+    # DATA_PATH = ~/.voxeasy/data.json             →  iCloud/.../VoxEasy/data.json  (fallback)
+    rel = os.path.relpath(DATA_PATH, _BASE_DIR)
+    return os.path.join(_ICLOUD_BASE, rel)
+
+
+def sync_to_icloud():
+    """Copy local data.json to iCloud Drive VoxEasy folder (per-user path)."""
+    import shutil
+    try:
+        if not os.path.exists(DATA_PATH):
+            return {"ok": False, "error": "No hay datos locales para sincronizar"}
+        icloud_path = _icloud_path()
+        os.makedirs(os.path.dirname(icloud_path), exist_ok=True)
+        shutil.copy2(DATA_PATH, icloud_path)
+        return {"ok": True, "path": icloud_path}
+    except Exception as e:
+        return {"ok": False, "error": str(e)[:80]}
+
+
+def sync_from_icloud():
+    """Restore data.json from iCloud Drive (per-user path)."""
+    import shutil
+    try:
+        icloud_path = _icloud_path()
+        if not os.path.exists(icloud_path):
+            return {"ok": False, "error": "No se encontro backup en iCloud"}
+        os.makedirs(os.path.dirname(DATA_PATH), exist_ok=True)
+        shutil.copy2(icloud_path, DATA_PATH)
+        return {"ok": True}
+    except Exception as e:
+        return {"ok": False, "error": str(e)[:80]}
+
+
+def icloud_sync_available():
+    """Check if iCloud Drive is accessible."""
+    return os.path.exists(os.path.expanduser(
+        "~/Library/Mobile Documents/com~apple~CloudDocs"
+    ))
