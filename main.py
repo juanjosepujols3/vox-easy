@@ -24,6 +24,7 @@ from engine.text_processing import (
 from engine.dev_terms import DEV_TERMS
 from engine.file_indexer import apply_file_tagging
 from engine.transcriber import build_smart_prompt
+from engine.llm_postprocess import improve_transcription_with_llm
 
 LOG_PATH = os.path.join(os.path.expanduser("~"), ".voxeasy", "error.log")
 
@@ -1006,6 +1007,12 @@ class ApiBridge:
                 if text and not self._is_hallucination(text):
                     lang = self.language or "es"
                     settings = storage.get_settings()
+
+                    # ── QUALITY MODE: LLM Post-Processing ─────────
+                    # Mejora la transcripción con Claude Haiku antes del pipeline local
+                    # Solo si está activado (agrega ~700ms pero mejora calidad dramáticamente)
+                    if settings.get("llm_postprocess", False):
+                        text = improve_transcription_with_llm(text, lang, timeout=5.0)
 
                     # ── NEW PIPELINE ──────────────────────────────
                     # 1. Self-correction (runs first on raw Whisper output)

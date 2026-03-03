@@ -1197,6 +1197,13 @@
                             <div><p class="text-sm font-medium">Formalidad con IA (Claude Haiku)</p><p class="text-xs text-gray-500">Reescribe el texto en el tono del contexto activo. Agrega ~400ms de latencia.</p></div>
                             <label class="toggle-sw"><input type="checkbox" id="set-llm-formality" onchange="onSettingToggle('llm_formality', this.checked)" /><span class="slider"></span></label>
                         </div>
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium">🚀 Modo Calidad (Claude Haiku)</p>
+                                <p class="text-xs text-gray-500">Post-procesa con IA para transcripciones casi perfectas. Corrige errores, mejora puntuacion. +700ms.</p>
+                            </div>
+                            <label class="toggle-sw"><input type="checkbox" id="set-llm-postprocess" onchange="onSettingToggle('llm_postprocess', this.checked)" /><span class="slider"></span></label>
+                        </div>
                     </div>
 
                     <h4 class="text-xs font-bold uppercase tracking-wider text-gray-500 mt-6 mb-4">Modo Desarrollador</h4>
@@ -2055,6 +2062,7 @@
             document.getElementById('set-pause-punctuation').checked = settings.pause_punctuation || false;
             document.getElementById('set-low-volume-mode').checked = settings.low_volume_mode || false;
             document.getElementById('set-llm-formality').checked = settings.llm_formality || false;
+            document.getElementById('set-llm-postprocess').checked = settings.llm_postprocess || false;
             document.getElementById('set-dev-mode').checked = settings.dev_mode || false;
             document.getElementById('set-file-tagging').checked = settings.file_tagging !== false;
             renderDevModeApps(settings.dev_mode_apps || []);
