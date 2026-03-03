@@ -3,15 +3,16 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, EmailStr
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, delete
 from db import get_db, init_db
-from models import User, WeeklyUsage
+from models import User, WeeklyUsage, UserConfig
 from auth import hash_password, verify_password, create_access_token, get_current_user
 from engine.transcriber import Transcriber
 from datetime import date, timedelta
 import tempfile
 import os
 import uuid
+import json
 
 app = FastAPI(title="Vox Easy API", version="1.0.0")
 
@@ -89,12 +90,15 @@ async def health():
 
 @app.post("/auth/register")
 async def register(body: RegisterRequest, db: AsyncSession = Depends(get_db)):
-    existing = await db.execute(select(User).where(User.email == body.email))
+    # Normalize email: lowercase and strip whitespace
+    email = body.email.lower().strip()
+
+    existing = await db.execute(select(User).where(User.email == email))
     if existing.scalar_one_or_none():
         raise HTTPException(status_code=409, detail="Email already registered")
 
     user = User(
-        email=body.email,
+        email=email,
         password_hash=hash_password(body.password),
         name=body.name,
     )
@@ -116,7 +120,10 @@ async def register(body: RegisterRequest, db: AsyncSession = Depends(get_db)):
 
 @app.post("/auth/login")
 async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(User).where(User.email == body.email))
+    # Normalize email: lowercase and strip whitespace
+    email = body.email.lower().strip()
+
+    result = await db.execute(select(User).where(User.email == email))
     user = result.scalar_one_or_none()
 
     if not user or not verify_password(body.password, user.password_hash):
@@ -142,6 +149,42 @@ async def me(user: User = Depends(get_current_user)):
         "name": user.name,
         "is_pro": user.is_pro,
     }
+
+
+# ─── Config Sync ──────────────────────────────────────
+
+class SaveConfigRequest(BaseModel):
+    config: dict
+
+
+@app.get("/config")
+async def get_config(
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    result = await db.execute(select(UserConfig).where(UserConfig.user_id == user.id))
+    cfg = result.scalar_one_or_none()
+    if not cfg:
+        return {}
+    return json.loads(cfg.config_json)
+
+
+@app.put("/config")
+async def save_config(
+    body: SaveConfigRequest,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    result = await db.execute(select(UserConfig).where(UserConfig.user_id == user.id))
+    cfg = result.scalar_one_or_none()
+    config_str = json.dumps(body.config, ensure_ascii=False)
+    if cfg:
+        cfg.config_json = config_str
+    else:
+        cfg = UserConfig(user_id=user.id, config_json=config_str)
+        db.add(cfg)
+    await db.commit()
+    return {"ok": True}
 
 
 # ─── Transcripcion ────────────────────────────────────
@@ -242,6 +285,79 @@ async def activate_license(
 @app.get("/license/status")
 async def license_status(user: User = Depends(get_current_user)):
     return {"is_pro": user.is_pro, "license_key": user.license_key}
+
+
+# ─── Admin (solo desarrollo) ──────────────────────────
+
+@app.delete("/admin/user/{email}")
+async def delete_user_admin(email: str, db: AsyncSession = Depends(get_db)):
+    """SOLO PARA DESARROLLO - Eliminar usuario por email"""
+    email = email.lower().strip()
+    result = await db.execute(select(User).where(User.email == email))
+    user = result.scalar_one_or_none()
+
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+
+    user_id = user.id
+
+    # Eliminar datos relacionados
+    await db.execute(delete(WeeklyUsage).where(WeeklyUsage.user_id == user_id))
+    await db.execute(delete(UserConfig).where(UserConfig.user_id == user_id))
+
+    # Eliminar usuario
+    await db.delete(user)
+    await db.commit()
+
+    return {"message": f"Usuario {email} eliminado", "id": user_id}
+
+
+# ─── Style / LLM Formality ────────────────────────────
+
+class StyleTransformRequest(BaseModel):
+    text: str
+    formality: str  # "casual" | "formal" | "email" | "neutral"
+
+
+@app.post("/style/transform")
+async def style_transform(
+    body: StyleTransformRequest,
+    user: User = Depends(get_current_user),
+):
+    """Rewrite text in the desired formality using Claude Haiku."""
+    if not body.text or body.formality == "neutral":
+        return {"text": body.text}
+
+    formality_prompts = {
+        "formal": "formal y profesional",
+        "casual": "casual y conversacional",
+        "email": "apropiado para un correo electronico profesional",
+    }
+    tone = formality_prompts.get(body.formality, "neutral")
+
+    try:
+        import anthropic
+        client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY", ""))
+        message = client.messages.create(
+            model="claude-haiku-4-5-20251001",
+            max_tokens=512,
+            timeout=5.0,
+            messages=[
+                {
+                    "role": "user",
+                    "content": (
+                        f"Reescribe el siguiente texto en tono {tone}. "
+                        f"Solo devuelve el texto reescrito sin explicaciones ni comillas.\n\n"
+                        f"{body.text}"
+                    ),
+                }
+            ],
+        )
+        result = message.content[0].text.strip()
+        return {"text": result}
+    except Exception:
+        # Always fall back to original text on any error
+        return {"text": body.text}
 
 
 # ─── Landing page ─────────────────────────────────────
