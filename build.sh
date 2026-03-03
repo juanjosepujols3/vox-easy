@@ -2,12 +2,24 @@
 set -e
 echo "=== Vox Easy Build Script ==="
 
-VERSION="1.0.8"
+VERSION="1.0.9"
 RELEASE_DIR="$HOME/Desktop/DMG - Vox Easy"
 mkdir -p "$RELEASE_DIR"
 
 ARCH=$(uname -m)
 echo "Host architecture: $ARCH"
+
+# Detectar certificate de firma (para mantener permisos entre builds)
+CERT_NAME="Vox Easy Developer"
+if security find-identity -v -p codesigning | grep -q "$CERT_NAME"; then
+    SIGNING_IDENTITY="$CERT_NAME"
+    echo "✅ Usando certificate: $CERT_NAME (permisos persistentes)"
+else
+    SIGNING_IDENTITY="-"
+    echo "⚠️  Usando ad-hoc signing (permisos se resetearán)"
+    echo "   Para permisos persistentes, ejecuta: ./create_signing_certificate.sh"
+fi
+echo ""
 
 # ---- Función para crear el DMG estilo nativo Apple ----
 make_dmg() {
@@ -43,7 +55,7 @@ if [ "$ARCH" = "arm64" ]; then
 
     # Sign with entitlements para que los permisos persistan
     echo "  Firmando con entitlements..."
-    codesign --deep --force --sign - \
+    codesign --deep --force --sign "$SIGNING_IDENTITY" \
         --entitlements entitlements.plist \
         --options runtime \
         "dist/Vox Easy.app"
@@ -74,7 +86,7 @@ fi
 
 # Sign with entitlements para que los permisos persistan
 echo "  Firmando Intel con entitlements..."
-codesign --deep --force --sign - \
+codesign --deep --force --sign "$SIGNING_IDENTITY" \
     --entitlements entitlements.plist \
     --options runtime \
     "$DIST_INTEL/Vox Easy.app"
