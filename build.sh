@@ -40,7 +40,14 @@ make_dmg() {
 if [ "$ARCH" = "arm64" ]; then
     echo "[1/2] Building arm64 (Apple Silicon)..."
     .venv/bin/pyinstaller vox-arm64.spec --clean --noconfirm
-    codesign --deep --force --sign - "dist/Vox Easy.app"
+
+    # Sign with entitlements para que los permisos persistan
+    echo "  Firmando con entitlements..."
+    codesign --deep --force --sign - \
+        --entitlements entitlements.plist \
+        --options runtime \
+        "dist/Vox Easy.app"
+
     make_dmg "dist/Vox Easy.app" "arm64"
 else
     echo "[SKIP] arm64 build requiere Mac con Apple Silicon (M1/M2/M3/M4)."
@@ -65,7 +72,13 @@ else
     DIST_INTEL="dist-intel"
 fi
 
-codesign --deep --force --sign - "$DIST_INTEL/Vox Easy.app"
+# Sign with entitlements para que los permisos persistan
+echo "  Firmando Intel con entitlements..."
+codesign --deep --force --sign - \
+    --entitlements entitlements.plist \
+    --options runtime \
+    "$DIST_INTEL/Vox Easy.app"
+
 make_dmg "$DIST_INTEL/Vox Easy.app" "Intel"
 
 echo ""

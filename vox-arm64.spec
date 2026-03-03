@@ -13,12 +13,16 @@ a = Analysis(
     ],
     hiddenimports=[
         'webview', 'requests', 'sounddevice',
-        'scipy.io.wavfile', 'scipy.io', 'scipy',
+        'scipy.io.wavfile', 'scipy.io', 'scipy', 'scipy.signal',
         'numpy', 'httpx', 'httpx._transports.default',
         'engine.audio', 'engine.keyboard', 'engine.storage',
         'engine.transcriber', 'engine.text_processing',
         'engine.file_indexer', 'engine.dev_terms',
+        'engine.llm_postprocess',  # Nuevo: post-procesamiento LLM
         'pyautogui', 'ApplicationServices', 'AppKit', 'Cocoa',
+        'noisereduce',  # Nuevo: reducción de ruido
+        'webrtcvad',    # Nuevo: VAD mejorado
+        'anthropic',    # Nuevo: Claude API
     ],
     hookspath=[],
     runtime_hooks=[],
