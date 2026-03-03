@@ -991,12 +991,13 @@ class ApiBridge:
             form_data["prompt"] = self._build_whisper_prompt()
             print(f"[transcribe] language={self.language}, form_data={form_data}", flush=True)
 
+            # Timeout reducido de 15s → 10s para evitar app "congelada"
             resp = requests.post(
                 f"{API_URL}/transcribe",
                 files={"file": ("audio.wav", audio_buf, "audio/wav")},
                 data=form_data,
                 headers={"Authorization": f"Bearer {self.token}"},
-                timeout=15,
+                timeout=10,  # Reducido para mejor UX
             )
 
             if resp.status_code == 200:
@@ -1117,6 +1118,8 @@ class ApiBridge:
             else:
                 self._js("updateStatus('error', 'Error del servidor', '');")
 
+        except requests.Timeout:
+            self._js("updateStatus('error', 'Timeout', 'El servidor tardo mucho en responder');")
         except requests.ConnectionError:
             self._js("updateStatus('error', 'Sin conexion', 'Verifica tu internet');")
         except Exception as e:
@@ -1218,12 +1221,13 @@ class ApiBridge:
                 form_data["language"] = self.language
             form_data["prompt"] = "Transcripcion de nota de voz."
 
+            # Timeout reducido de 15s → 10s para evitar app "congelada"
             resp = requests.post(
                 f"{API_URL}/transcribe",
                 files={"file": ("audio.wav", audio_buf, "audio/wav")},
                 data=form_data,
                 headers={"Authorization": f"Bearer {self.token}"},
-                timeout=15,
+                timeout=10,  # Reducido para mejor UX
             )
 
             if resp.status_code == 200:
