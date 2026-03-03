@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, Date
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, Date, Text
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from db import Base
@@ -16,6 +16,18 @@ class User(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     usage = relationship("WeeklyUsage", back_populates="user")
+    config = relationship("UserConfig", back_populates="user", uselist=False)
+
+
+class UserConfig(Base):
+    __tablename__ = "user_configs"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), unique=True, nullable=False)
+    config_json = Column(Text, nullable=False, default="{}")
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    user = relationship("User", back_populates="config")
 
 
 class WeeklyUsage(Base):
