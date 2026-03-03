@@ -55,6 +55,7 @@ app = BUNDLE(
         'CFBundleShortVersionString': '1.0.0',
         'NSMicrophoneUsageDescription': 'Vox Easy necesita acceso al micrófono para transcribir tu voz.',
         'NSAppleEventsUsageDescription': 'Vox Easy necesita permisos de accesibilidad para escribir texto automáticamente.',
+        'NSAppleEventsUsageDescriptionForSystemEvents': 'Vox Easy necesita controlar System Events para activarse al iniciar sesión.',
         'LSMinimumSystemVersion': '12.0',
     },
 )
